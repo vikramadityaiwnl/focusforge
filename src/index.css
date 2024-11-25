@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap');
+
+:root[class="light"] {
+  --border-color: rgba(0, 0, 0, 0.12);
+}
+
+:root[class="dark"] {
+  --border-color: rgba(255, 255, 255, 0.12);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  text-decoration: none;
+  list-style: none;
+  font-family: 'Fira Code', sans-serif;
+}
+
+.good-border-bottom {
+  border-bottom: 1px solid var(--border-color);
+}
