@@ -1,51 +1,62 @@
 import { create } from "zustand";
 
-export interface SessionList {
+export interface Session {
   id: string,
   name: string,
   createdOn: string,
   totalTasks: number,
+  todos: Todo[],
+  pomodoro: {
+    focusTimeInMinutes: number,
+    breakTimeInMinutes: number,
+  }
+}
+
+export interface Todo {
+  id: string,
+  name: string,
+  completed: boolean,
 }
 
 type SessionStore = {
-  sessionList: SessionList[],
-  addSessionList: (session: SessionList) => void,
-  removeSessionList: (id: string) => void,
-  updateSessionList: (id: string, session: SessionList) => void,
+  sessions: Session[],
+  addSession: (session: Session) => void,
+  removeSession: (id: string) => void,
+  updateSession: (id: string, session: Session) => void,
 }
 
-const getSessionList = () => {
-  if (!localStorage.getItem("session-list")) {
-    localStorage.setItem("session-list", JSON.stringify([]))
+const getSessions = () => {
+  if (!localStorage.getItem("sessions")) {
+    localStorage.setItem("sessions", JSON.stringify([]))
   }
 
-  return JSON.parse(localStorage.getItem("session-list") || "[]") as SessionList[]
+  return JSON.parse(localStorage.getItem("sessions") || "[]") as Session[]
 }
 
-const saveSessionList = (sessionList: SessionList[]) => {
-  localStorage.setItem("session-list", JSON.stringify(sessionList))
+const saveSession = (sessions: Session[]) => {
+  localStorage.setItem("sessions", JSON.stringify(sessions))
 }
 
 export const useSessionStore = create<SessionStore>((set) => ({
-  sessionList: getSessionList(),
+  sessions: getSessions(),
 
-  addSessionList: (session: SessionList) => set((state) => {
-    const newList = [...state.sessionList, session];
-    saveSessionList(newList);
-    return { sessionList: newList };
+  addSession: (session: Session) => set((state) => {
+    const newList = [...state.sessions, session];
+    saveSession(newList);
+    return { sessions: newList };
   }),
 
-  removeSessionList: (id: string) => set((state) => {
-    const newList = state.sessionList.filter((session) => session.id !== id);
-    saveSessionList(newList);
-    return { sessionList: newList };
+  removeSession: (id: string) => set((state) => {
+    const newList = state.sessions.filter((session) => session.id !== id);
+    saveSession(newList);
+    return { sessions: newList };
   }),
 
-  updateSessionList: (id: string, newSession: SessionList) => set((state) => {
-    const newList = state.sessionList.map((session) => 
+  updateSession: (id: string, newSession: Session) => set((state) => {
+    const newList = state.sessions.map((session) => 
       session.id === id ? newSession : session
     );
-    saveSessionList(newList);
-    return { sessionList: newList };
+    saveSession(newList);
+    return { sessions: newList };
   }),
 }))

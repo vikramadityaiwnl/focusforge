@@ -2,9 +2,10 @@ import { LucideAlarmClock, LucidePlus } from "lucide-react"
 import { useSessionStore } from "../states/session"
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Input, Card, CardBody } from "@nextui-org/react";
 import { v4 as uuid } from "uuid"
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 
-export const Home = () => {
+export const HomePage = () => {
   const { isOpen, onOpen, onClose } = useDisclosure()
 
   return (
@@ -31,9 +32,9 @@ const HomeNav = () => {
 }
 
 const HomeSessions = () => {
-  const { sessionList } = useSessionStore()
+  const { sessions } = useSessionStore()
 
-  if (sessionList.length === 0) {
+  if (sessions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center w-full h-full">
         <div className="flex flex-col items-center justify-center gap-4">
@@ -52,14 +53,16 @@ const HomeSessions = () => {
   return (
     <div className="flex flex-col overflow-y-auto">
       {
-        sessionList.map((session) => (
-          <Card key={session.id} className="w-80 cursor-pointer hover:opacity-80 transition-opacity shrink-0 m-2">
-            <CardBody className="h-32 flex flex-col justify-between p-4">
-              <p className="font-medium text-lg truncate">{session.name}</p>
-              <p className="text-sm text-neutral-500">{new Date(session.createdOn).toLocaleDateString()}</p>
-              <p className="text-sm text-neutral-500">{session.totalTasks} tasks</p>
-            </CardBody>
-          </Card>
+        [...sessions].reverse().map((session) => (
+          <Link to={`/${session.id}`} key={session.id}>
+            <Card className="w-80 cursor-pointer hover:opacity-80 transition-opacity shrink-0 m-2">
+              <CardBody className="h-32 flex flex-col justify-between p-4">
+                <p className="font-medium text-lg truncate">{session.name}</p>
+                <p className="text-sm text-neutral-500">{new Date(session.createdOn).toLocaleDateString()}</p>
+                <p className="text-sm text-neutral-500">{session.totalTasks} tasks</p>
+              </CardBody>
+            </Card>
+          </Link>
         ))
       }
     </div>
@@ -67,18 +70,23 @@ const HomeSessions = () => {
 }
 
 const CreateSessionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
-  const { addSessionList } = useSessionStore()
+  const { addSession } = useSessionStore()
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleCreateSession = () => {
     if (!inputRef.current) return
     if (!inputRef.current.value) return
 
-    addSessionList({
+    addSession({
       id: uuid(),
       name: inputRef.current.value,
       createdOn: new Date().toISOString(),
       totalTasks: 0,
+      todos: [],
+      pomodoro: {
+        focusTimeInMinutes: 25,
+        breakTimeInMinutes: 5,
+      }
     }),
 
     onClose()
@@ -92,7 +100,7 @@ const CreateSessionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
             <>
               <ModalHeader>Create Session</ModalHeader>
               <ModalBody>
-                <Input ref={inputRef} label="Session Name" isClearable />
+                <Input ref={inputRef} label="Session Name" isClearable autoFocus onKeyDown={(e) => e.key === "Enter" && handleCreateSession()} />
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>

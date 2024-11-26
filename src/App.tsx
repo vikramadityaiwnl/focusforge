@@ -1,10 +1,12 @@
 import { Route, Routes } from 'react-router-dom';
-import { Home } from './pages/home';
+import { HomePage } from './pages/home';
+import { SessionPage } from './pages/session';
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<HomePage />} />
+      <Route path="/:sessionId" element={<SessionPage />} />
     </Routes>
   )
 }

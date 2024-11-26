@@ -50,6 +50,15 @@ export default {
             text: {
               DEFAULT: "#333333",
             },
+            success: {
+              DEFAULT: "#17c964",
+            },
+            warning: {
+              DEFAULT: "#f5a524",
+            },
+            danger: {
+              DEFAULT: "#f31260",
+            }
           },
         },
         dark: {
@@ -88,6 +97,15 @@ export default {
             text: {
               DEFAULT: "#E0E0E0",
             },
+            success: {
+              DEFAULT: "#17c964",
+            },
+            warning: {
+              DEFAULT: "#f5a524",
+            },
+            danger: {
+              DEFAULT: "#f31260",
+            }
           },
         },
       }
