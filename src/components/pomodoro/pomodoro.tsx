@@ -18,7 +18,7 @@ export const Pomodoro = () => {
       setProgressLabel("00:00:00")
       clearInterval(intervalId)
       setIntervalId(undefined)
-      setPomodoroState({ ...pomodoroState, isOnFocus: !pomodoroState.isOnFocus, isOnBreak: !pomodoroState.isOnBreak, canPause: false, isPaused: false })
+      setPomodoroState({ isInitialLoad: true, isOnFocus: true, isOnBreak: false, canPause: false, isPaused: false })
       audio.play()
     }
 
@@ -41,6 +41,7 @@ export const Pomodoro = () => {
   const handleBreakStart = () => {
     setSeconds(breakTimeInMinutes * 60)
     setPomodoroState({ isInitialLoad: false, isOnFocus: false, canPause: true, isOnBreak: true, isPaused: false })
+    setCurrentState(PomodoroStateEnum.BREAK)
 
     if (!intervalId) {
       const id = setInterval(() => {
@@ -67,9 +68,10 @@ export const Pomodoro = () => {
   }
 
   const handleReset = () => {
-    setSeconds(focusTimeInMinutes * 60)
-    setCurrentState(PomodoroStateEnum.FOCUS)
-    setPomodoroState({ ...pomodoroState, isOnFocus: true, canPause: true, isOnBreak: false, isPaused: false })
+    setPomodoroState({ isInitialLoad: true, isOnFocus: true, isOnBreak: false, canPause: false, isPaused: false })
+    currentState === PomodoroStateEnum.FOCUS ? setSeconds(focusTimeInMinutes * 60) : setSeconds(breakTimeInMinutes * 60)
+    clearInterval(intervalId)
+    setIntervalId(undefined)
   }
 
   return (

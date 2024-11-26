@@ -20,9 +20,13 @@ export interface Todo {
 
 type SessionStore = {
   sessions: Session[],
+  currentSession: Session | null,
   addSession: (session: Session) => void,
   removeSession: (id: string) => void,
   updateSession: (id: string, session: Session) => void,
+  setCurrentSession: (session: Session) => void,
+  addTodo: (todo: Todo) => void,
+  removeTodo: (id: string) => void,
 }
 
 const getSessions = () => {
@@ -39,6 +43,7 @@ const saveSession = (sessions: Session[]) => {
 
 export const useSessionStore = create<SessionStore>((set) => ({
   sessions: getSessions(),
+  currentSession: null,
 
   addSession: (session: Session) => set((state) => {
     const newList = [...state.sessions, session];
@@ -58,5 +63,29 @@ export const useSessionStore = create<SessionStore>((set) => ({
     );
     saveSession(newList);
     return { sessions: newList };
+  }),
+
+  setCurrentSession: (session: Session) => set({ currentSession: session }),
+
+  addTodo: (todo: Todo) => set((state) => {
+    if (!state.currentSession) return {};
+    const newList = state.currentSession.todos.concat(todo);
+    const newSession = { ...state.currentSession, todos: newList } as Session;
+    const newSessions = state.sessions.map((session) => 
+      session.id === state.currentSession?.id ? newSession : session
+    );
+    saveSession(newSessions);
+    return { sessions: newSessions, currentSession: newSession };
+  }),
+
+  removeTodo: (id: string) => set((state) => {
+    if (!state.currentSession) return {};
+    const newList = state.currentSession.todos.filter((todo) => todo.id !== id);
+    const newSession = { ...state.currentSession, todos: newList } as Session;
+    const newSessions = state.sessions.map((session) => 
+      session.id === state.currentSession?.id ? newSession : session
+    );
+    saveSession(newSessions);
+    return { sessions: newSessions, currentSession: newSession };
   }),
 }))

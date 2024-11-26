@@ -2,7 +2,7 @@ import { LucideAlarmClock, LucidePlus } from "lucide-react"
 import { useSessionStore } from "../states/session"
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Input, Card, CardBody } from "@nextui-org/react";
 import { v4 as uuid } from "uuid"
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { Link } from "react-router-dom";
 
 export const HomePage = () => {
@@ -36,13 +36,13 @@ const HomeSessions = () => {
 
   if (sessions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center w-full h-full">
+      <div className="flex flex-col items-center justify-center w-full h-full text-neutral-500">
         <div className="flex flex-col items-center justify-center gap-4">
-          <LucideAlarmClock size={48} className="text-neutral-500" />
-          <div className="font-bold text-xl text-neutral-500">
+          <LucideAlarmClock size={48} className="" />
+          <div className="font-bold text-xl">
             No sessions found
           </div>
-          <div className="text-sm text-neutral-500">
+          <div className="text-sm">
             Create a session to get started
           </div>
         </div>
