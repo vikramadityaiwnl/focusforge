@@ -28,7 +28,7 @@ export const SessionPage = () => {
 
   if (session) {
     return (
-      <div className="flex flex-col gap-4 h-screen">
+      <div className="flex flex-col gap-4 h-screen overflow-hidden">
         <div className="flex flex-row items-center gap-4 p-4 w-full h-16 text-xl font-black tracking-widest good-border-bottom shrink-0">
           <Button startContent={<LucideArrowLeft size={18} />} onPress={() => navigation("/")} className="text-l font-semibold">
             {session.name}
@@ -40,12 +40,6 @@ export const SessionPage = () => {
         <Pomodoro />
 
         <SessionTabs />
-
-        <Tooltip content="Chat with AI">
-          <Button variant="flat" isIconOnly className="absolute right-4 bottom-4 m-4">
-            <LucideBot size={18} />
-          </Button>
-        </Tooltip>
       </div>
     )
   }
@@ -101,15 +95,20 @@ const tabs = [
     id: "tabs",
     label: "Tabs",
     content: <ChromeTabs />
+  },
+  {
+    id: "ai",
+    label: "AI",
+    content: <ChromeTabs />
   }
 ]
 const SessionTabs = () => {
   return (
-    <div className="flex w-full h-full flex-col p-4">
+    <div className="flex w-full h-full flex-col p-4 overflow-hidden mb-4">
       <Tabs aria-label="session tabs" items={tabs} fullWidth size="md" className="flex-shrink-0">
         {
           (item) => (
-            <Tab key={item.id} title={item.label} className="h-full">
+            <Tab key={item.id} title={item.label} className="h-full flex-grow-0">
               {item.content}
             </Tab>
           )
