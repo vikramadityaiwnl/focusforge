@@ -6,7 +6,7 @@
   "background": {
     "service_worker": "background.js"
   },
-  "permissions": ["sidePanel", "aiLanguageModelOriginTrial", "storage"],
+  "permissions": ["sidePanel", "aiLanguageModelOriginTrial", "storage", "tabs"],
   "side_panel": {
     "default_path": "index.html"
   },

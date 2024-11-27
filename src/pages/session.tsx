@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { Session, useSessionStore } from "../states/session"
-import { LucideArrowLeft, LucideBot, LucideChartArea, LucideGlobeLock, LucideMenu, LucideSettings2, LucideTrash2 } from "lucide-react"
-import { ChromeTabs, Pomodoro, Todos } from "../components"
-import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownSection, DropdownTrigger, Tab, Tabs, Tooltip } from "@nextui-org/react"
+import { LucideArrowLeft, LucideChartArea, LucideGlobeLock, LucideMenu, LucideSettings2, LucideTrash2 } from "lucide-react"
+import { AI, ChromeTabs, Pomodoro, Todos } from "../components"
+import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownSection, DropdownTrigger, Tab, Tabs } from "@nextui-org/react"
 
 export const SessionPage = () => {
   const location = useLocation()
@@ -99,7 +99,7 @@ const tabs = [
   {
     id: "ai",
     label: "AI",
-    content: <ChromeTabs />
+    content: <AI />
   }
 ]
 const SessionTabs = () => {

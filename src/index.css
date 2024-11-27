@@ -19,6 +19,11 @@
   text-decoration: none;
   list-style: none;
   font-family: 'Fira Code', sans-serif;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .good-border-bottom {
