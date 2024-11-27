@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { Session, useSessionStore } from "../states/session"
-import { LucideArrowLeft, LucideChartArea, LucideGlobeLock, LucideMenu, LucideSettings2, LucideTrash2 } from "lucide-react"
+import { LucideArrowLeft, LucideChartArea, LucideMenu, LucideMinus, LucideMoon, LucidePlus, LucideSettings2, LucideSun, LucideTrash2 } from "lucide-react"
 import { AI, ChromeTabs, Pomodoro, Todos } from "../components"
-import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownSection, DropdownTrigger, Tab, Tabs } from "@nextui-org/react"
+import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownSection, DropdownTrigger, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Switch, Tab, Tabs, useDisclosure } from "@nextui-org/react"
+import { useTheme } from "next-themes"
+import { useConfigureStore } from "../states/configure"
 
 export const SessionPage = () => {
   const location = useLocation()
@@ -13,7 +15,11 @@ export const SessionPage = () => {
 
   const [session, setSession] = useState<Session>()
 
+  const deleteDialog = useDisclosure()
+  const configDialog = useDisclosure()
+
   const { sessions, setCurrentSession } = useSessionStore()
+  const { showPomodoroClock } = useConfigureStore()
 
   useEffect(() => {
     const currentSession = sessions.find((s) => s.id === sessionId)
@@ -34,18 +40,21 @@ export const SessionPage = () => {
             {session.name}
           </Button>
 
-          <Menu />
+          <Menu openDeleteDialog={deleteDialog.onOpen} openConfigurationDialog={configDialog.onOpen} />
         </div>
 
-        <Pomodoro />
+        {showPomodoroClock && <Pomodoro />}
 
         <SessionTabs />
+
+        <DeleteSessionDialog isOpen={deleteDialog.isOpen} onClose={deleteDialog.onClose} />
+        <ConfigurationDialog isOpen={configDialog.isOpen} onClose={configDialog.onClose} />
       </div>
     )
   }
 }
 
-const Menu = () => {
+const Menu = ({ openDeleteDialog, openConfigurationDialog }: { openDeleteDialog: () => void, openConfigurationDialog: () => void }) => {
   return (
     <Dropdown>
       <DropdownTrigger>
@@ -56,6 +65,7 @@ const Menu = () => {
       <DropdownMenu variant="faded" aria-label="Dropdown menu with actions">
         <DropdownSection title="Actions" showDivider>
           <DropdownItem
+            onPress={openConfigurationDialog}
             key="configure"
             startContent={<LucideSettings2 size={18} />}>
             Configure
@@ -65,14 +75,10 @@ const Menu = () => {
             startContent={<LucideChartArea size={18} />}>
             Analytics
           </DropdownItem>
-          <DropdownItem
-            key="blocked"
-            startContent={<LucideGlobeLock size={18} />}>
-            Blocked Websites
-          </DropdownItem>
         </DropdownSection>
         <DropdownSection title="Danger Zone">
           <DropdownItem
+            onPress={openDeleteDialog}
             key="delete"
             color="danger"
             className="text-danger"
@@ -115,5 +121,156 @@ const SessionTabs = () => {
         }
       </Tabs>
     </div>
+  )
+}
+
+const ConfigurationDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+  const { theme, setTheme } = useTheme()
+  const { showPomodoroClock, focusTimeInMinutes, setFocusTimeInMinutes, breakTimeInMinutes, setBreakTimeInMinutes, setShowPomodoroClock, aiWebsiteBlockerEnabled, setAiWebsiteBlockerEnabled } = useConfigureStore()
+
+  return (
+    <Modal backdrop="blur" isOpen={isOpen} onClose={onClose} placement="center">
+      <ModalContent>
+        {
+          (onClose) => (
+            <>
+              <ModalHeader>Configure</ModalHeader>
+              <ModalBody className="flex flex-col gap-4">
+                <div className="flex flex-row justify-between gap-4">
+                  <span>Show Pomodoro Clock</span>
+                  <Switch size="sm" isSelected={showPomodoroClock} onValueChange={(isSelected) => setShowPomodoroClock(isSelected)} />
+                </div>
+
+                {
+                  showPomodoroClock && (
+                    <div className="flex flex-row justify-between gap-4 mt-4">
+                      <Input 
+                      type="number" 
+                      label="Focus Time (minutes)"
+                      size="sm"
+                      labelPlacement="outside"
+                      value={focusTimeInMinutes.toString()} 
+                      disabled
+                      classNames={{
+                        input: "text-center"
+                      }}
+                      startContent={
+                        <Button 
+                        isIconOnly 
+                        variant="light" 
+                        color="default" 
+                        onPress={() => setFocusTimeInMinutes(Math.max(5, focusTimeInMinutes - 5))}
+                        isDisabled={focusTimeInMinutes <= 5}
+                        >
+                        <LucideMinus size={18} />
+                        </Button>
+                      }
+                      endContent={
+                        <Button 
+                        isIconOnly 
+                        variant="light" 
+                        color="default" 
+                        onPress={() => setFocusTimeInMinutes(Math.min(120, focusTimeInMinutes + 5))}
+                        isDisabled={focusTimeInMinutes >= 120}
+                        >
+                        <LucidePlus size={18} />
+                        </Button>
+                      } 
+                      />
+                      <Input 
+                      type="number" 
+                      label="Break Time (minutes)"
+                      labelPlacement="outside"
+                      size="sm"
+                      value={breakTimeInMinutes.toString()} 
+                      disabled
+                      classNames={{
+                        input: "text-center"
+                      }}
+                      startContent={
+                        <Button 
+                        isIconOnly 
+                        variant="light" 
+                        color="default"
+                        onPress={() => setBreakTimeInMinutes(Math.max(5, breakTimeInMinutes - 5))}
+                        isDisabled={breakTimeInMinutes <= 5}
+                        >
+                        <LucideMinus size={18} />
+                        </Button>
+                      }
+                      endContent={
+                        <Button 
+                        isIconOnly 
+                        variant="light" 
+                        color="default"
+                        onPress={() => setBreakTimeInMinutes(Math.min(30, breakTimeInMinutes + 5))}
+                        isDisabled={breakTimeInMinutes >= 30}
+                        >
+                        <LucidePlus size={18} />
+                        </Button>
+                      } 
+                      />
+                    </div>
+                  )
+                }
+
+                <div className="flex flex-row justify-between gap-4">
+                  <span>AI Website Blocker</span>
+                  <Switch size="sm" isSelected={aiWebsiteBlockerEnabled} onValueChange={(isSelected) => setAiWebsiteBlockerEnabled(isSelected)} />
+                </div>
+
+                <Switch
+                  defaultSelected
+                  size="md"
+                  color="primary"
+                  onValueChange={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  thumbIcon={({ className }) =>
+                    theme === "dark" ? (
+                      <LucideMoon size={18} className={className} />
+                    ) : (
+                      <LucideSun size={18} className={className} />
+                    )
+                  } />
+              </ModalBody>
+              <ModalFooter />
+            </>
+          )
+        }
+      </ModalContent>
+    </Modal>
+  )
+}
+
+const DeleteSessionDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+  const { currentSession, removeSession } = useSessionStore()
+  const navigation = useNavigate()
+
+  return (
+    <Modal backdrop="blur" isOpen={isOpen} onClose={onClose} placement="center">
+      <ModalContent>
+        {
+          (onClose) => (
+            <>
+              <ModalHeader>Delete Session</ModalHeader>
+              <ModalBody>
+                Are you sure you want to delete this session? This action cannot be undone.
+              </ModalBody>
+              <ModalFooter>
+                <Button color="default" variant="light" onPress={onClose}>
+                  Cancel
+                </Button>
+                <Button color="danger" onPress={() => {
+                  removeSession(currentSession?.id || "")
+                  onClose()
+                  navigation("/")
+                }}>
+                  Delete
+                </Button>
+              </ModalFooter>
+            </>
+          )
+        }
+      </ModalContent>
+    </Modal>
   )
 }

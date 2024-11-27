@@ -2,9 +2,11 @@ import { Button, CircularProgress } from "@nextui-org/react"
 import { PomodoroStateEnum, usePomodoroStore } from "../../states/pomodoro"
 import { useEffect, useState } from "react"
 import { LucideAlarmCheck, LucideAlarmClockMinus, LucideCirclePause, LucideCirclePlay, LucideTimerReset } from "lucide-react"
+import { useConfigureStore } from "../../states/configure"
 
 export const Pomodoro = () => {
-  const { currentState, setCurrentState, focusTimeInMinutes, breakTimeInMinutes } = usePomodoroStore()
+  const { currentState, setCurrentState } = usePomodoroStore()
+  const { focusTimeInMinutes, breakTimeInMinutes } = useConfigureStore()
 
   const [seconds, setSeconds] = useState(focusTimeInMinutes * 60)
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout>()
