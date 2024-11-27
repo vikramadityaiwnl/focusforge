@@ -6,7 +6,11 @@
   "background": {
     "service_worker": "background.js"
   },
-  "permissions": ["sidePanel", "aiLanguageModelOriginTrial", "storage", "tabs"],
+  "permissions": ["sidePanel", "aiLanguageModelOriginTrial", "storage", "tabs", "scripting"],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
   "side_panel": {
     "default_path": "index.html"
   },

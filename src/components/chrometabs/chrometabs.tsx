@@ -125,6 +125,19 @@ export const ChromeTabs = () => {
   //   setTabs(demoTabs)
   // }, [])
 
+  const handleSummarize = (tab: chrome.tabs.Tab) => {
+    if (tab.id === undefined) return
+    
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => {
+        return document.body.innerText
+      }
+    }).then((result) => {
+      const tabcontent = result[0].result
+    })
+  }
+
   return (
     <div className="flex flex-col gap-4 h-full overflow-y-auto flex-grow">
       {
@@ -138,7 +151,7 @@ export const ChromeTabs = () => {
                   <p className="text-xs text-neutral-500 truncate">{tab.url}</p>
                 </div>
               </CardBody>
-              <Button startContent={<LucideScanText size={18} />} fullWidth size="sm">
+              <Button onPress={() => handleSummarize(tab)} startContent={<LucideScanText size={18} />} fullWidth size="sm">
                 Summarize
               </Button>
             </Card>
