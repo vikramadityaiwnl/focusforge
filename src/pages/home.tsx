@@ -83,10 +83,7 @@ const CreateSessionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
       createdOn: new Date().toISOString(),
       totalTasks: 0,
       todos: [],
-      pomodoro: {
-        focusTimeInMinutes: 25,
-        breakTimeInMinutes: 5,
-      }
+      conversation: [],
     }),
 
     onClose()

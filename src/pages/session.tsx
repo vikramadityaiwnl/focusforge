@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { Session, useSessionStore } from "../states/session"
-import { LucideArrowLeft, LucideChartArea, LucideMenu, LucideMinus, LucideMoon, LucidePlus, LucideSettings2, LucideSun, LucideTrash2 } from "lucide-react"
+import { LucideArrowLeft, LucideChartArea, LucideMenu, LucideMessageCircleX, LucideMinus, LucideMoon, LucidePlus, LucideSettings2, LucideSun, LucideTrash2 } from "lucide-react"
 import { AI, ChromeTabs, Pomodoro, Todos } from "../components"
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownSection, DropdownTrigger, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Switch, Tab, Tabs, useDisclosure } from "@nextui-org/react"
 import { useTheme } from "next-themes"
 import { useConfigureStore } from "../states/configure"
+import { useConversationStore } from "../states/conversation"
 
 export const SessionPage = () => {
   const location = useLocation()
@@ -17,9 +18,11 @@ export const SessionPage = () => {
 
   const deleteDialog = useDisclosure()
   const configDialog = useDisclosure()
+  const deleteChatDialog = useDisclosure()
 
   const { sessions, setCurrentSession } = useSessionStore()
   const { showPomodoroClock } = useConfigureStore()
+  const { setSessionId } = useConversationStore()
 
   useEffect(() => {
     const currentSession = sessions.find((s) => s.id === sessionId)
@@ -30,17 +33,18 @@ export const SessionPage = () => {
 
     setSession(currentSession)
     setCurrentSession(currentSession)
+    setSessionId(sessionId)
   }, [sessionId])
 
   if (session) {
     return (
       <div className="flex flex-col gap-4 h-screen overflow-hidden">
         <div className="flex flex-row items-center gap-4 p-4 w-full h-16 text-xl font-black tracking-widest good-border-bottom shrink-0">
-          <Button startContent={<LucideArrowLeft size={18} />} onPress={() => navigation("/")} className="text-l font-semibold">
-            {session.name}
+          <Button startContent={<LucideArrowLeft className="shrink-0" size={18} />} onPress={() => navigation("/")} className="text-l font-semibold flex items-center gap-2">
+            <span className="truncate">{session.name}</span>
           </Button>
 
-          <Menu openDeleteDialog={deleteDialog.onOpen} openConfigurationDialog={configDialog.onOpen} />
+          <Menu openDeleteDialog={deleteDialog.onOpen} openConfigurationDialog={configDialog.onOpen} openDeleteChatDialog={deleteChatDialog.onOpen} />
         </div>
 
         {showPomodoroClock && <Pomodoro />}
@@ -48,13 +52,19 @@ export const SessionPage = () => {
         <SessionTabs />
 
         <DeleteSessionDialog isOpen={deleteDialog.isOpen} onClose={deleteDialog.onClose} />
+        <DeleteChatDialog isOpen={deleteChatDialog.isOpen} onClose={deleteChatDialog.onClose} />
         <ConfigurationDialog isOpen={configDialog.isOpen} onClose={configDialog.onClose} />
       </div>
     )
   }
 }
 
-const Menu = ({ openDeleteDialog, openConfigurationDialog }: { openDeleteDialog: () => void, openConfigurationDialog: () => void }) => {
+interface MenuProps {
+  openDeleteDialog: () => void
+  openConfigurationDialog: () => void
+  openDeleteChatDialog: () => void
+}
+const Menu = ({ openDeleteDialog, openConfigurationDialog, openDeleteChatDialog }: MenuProps) => {
   return (
     <Dropdown>
       <DropdownTrigger>
@@ -78,8 +88,16 @@ const Menu = ({ openDeleteDialog, openConfigurationDialog }: { openDeleteDialog:
         </DropdownSection>
         <DropdownSection title="Danger Zone">
           <DropdownItem
+            onPress={openDeleteChatDialog}
+            key="delete-chat"
+            color="danger"
+            className="text-danger"
+            startContent={<LucideMessageCircleX size={18} />}>
+            Delete Chat
+          </DropdownItem>
+          <DropdownItem
             onPress={openDeleteDialog}
-            key="delete"
+            key="delete-session"
             color="danger"
             className="text-danger"
             startContent={<LucideTrash2 size={18} />}>
@@ -110,7 +128,7 @@ const tabs = [
 ]
 const SessionTabs = () => {
   return (
-    <div className="flex w-full h-full flex-col p-4 overflow-hidden mb-4">
+    <div className="flex w-full h-full flex-col p-4 overflow-hidden mb-2">
       <Tabs aria-label="session tabs" items={tabs} fullWidth size="md" className="flex-shrink-0">
         {
           (item) => (
@@ -223,6 +241,7 @@ const ConfigurationDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                   defaultSelected
                   size="md"
                   color="primary"
+                  className="mt-4"
                   onValueChange={() => setTheme(theme === "dark" ? "light" : "dark")}
                   thumbIcon={({ className }) =>
                     theme === "dark" ? (
@@ -232,7 +251,11 @@ const ConfigurationDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                     )
                   } />
               </ModalBody>
-              <ModalFooter />
+              <ModalFooter>
+                <Button color="default" variant="light" onPress={onClose}>
+                  Close
+                </Button>
+              </ModalFooter>
             </>
           )
         }
@@ -263,6 +286,38 @@ const DeleteSessionDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                   removeSession(currentSession?.id || "")
                   onClose()
                   navigation("/")
+                }}>
+                  Delete
+                </Button>
+              </ModalFooter>
+            </>
+          )
+        }
+      </ModalContent>
+    </Modal>
+  )
+}
+
+const DeleteChatDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+  const { clearMessages } = useConversationStore()
+
+  return (
+    <Modal backdrop="blur" isOpen={isOpen} onClose={onClose} placement="center">
+      <ModalContent>
+        {
+          (onClose) => (
+            <>
+              <ModalHeader>Delete Chat</ModalHeader>
+              <ModalBody>
+                Are you sure you want to delete chat from this session? This action cannot be undone.
+              </ModalBody>
+              <ModalFooter>
+                <Button color="default" variant="light" onPress={onClose}>
+                  Cancel
+                </Button>
+                <Button color="danger" onPress={() => {
+                  clearMessages()
+                  onClose()
                 }}>
                   Delete
                 </Button>

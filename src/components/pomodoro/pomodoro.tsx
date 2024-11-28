@@ -16,6 +16,13 @@ export const Pomodoro = () => {
   const [pomodoroState, setPomodoroState] = useState({ isInitialLoad: true, isOnFocus: true, isOnBreak: false, canPause: false, isPaused: false })
 
   useEffect(() => {
+    setSeconds(focusTimeInMinutes * 60)
+    setPomodoroState({ isInitialLoad: true, isOnFocus: true, isOnBreak: false, canPause: false, isPaused: false })
+    clearInterval(intervalId)
+    setIntervalId(undefined)
+  }, [focusTimeInMinutes, breakTimeInMinutes])
+
+  useEffect(() => {
     if (seconds <= 0) {
       setProgressLabel("00:00:00")
       clearInterval(intervalId)
@@ -70,10 +77,11 @@ export const Pomodoro = () => {
   }
 
   const handleReset = () => {
-    setPomodoroState({ isInitialLoad: true, isOnFocus: true, isOnBreak: false, canPause: false, isPaused: false })
-    currentState === PomodoroStateEnum.FOCUS ? setSeconds(focusTimeInMinutes * 60) : setSeconds(breakTimeInMinutes * 60)
+    setCurrentState(PomodoroStateEnum.FOCUS)
     clearInterval(intervalId)
     setIntervalId(undefined)
+    setPomodoroState({ isInitialLoad: true, isOnFocus: true, isOnBreak: false, canPause: false, isPaused: false })
+    setSeconds(focusTimeInMinutes * 60)
   }
 
   return (

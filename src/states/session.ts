@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { Conversation } from "./conversation";
 
 export interface Session {
   id: string,
@@ -6,10 +7,7 @@ export interface Session {
   createdOn: string,
   totalTasks: number,
   todos: Todo[],
-  pomodoro: {
-    focusTimeInMinutes: number,
-    breakTimeInMinutes: number,
-  }
+  conversation: Conversation[],
 }
 
 export interface Todo {
