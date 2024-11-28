@@ -53,7 +53,7 @@ export const Todos = () => {
           <div className="flex flex-col gap-4 overflow-y-auto flex-grow">
             {
               [...currentSession.todos].reverse().map((todo) => (
-                <div key={todo.id} className="flex flex-row justify-between items-center shrink-0">
+                <div key={todo.id} className="flex flex-row justify-between items-center gap-1 shrink-0">
                   <Checkbox key={todo.id} lineThrough isSelected={todo.completed} onValueChange={(isSelected) => handleUpdateTodo(todo.id, todo, isSelected)}>{todo.name}</Checkbox>
                   <Button isIconOnly size="sm" onPress={() => removeTodo(todo.id)}>
                     <LucideDelete size={18} />

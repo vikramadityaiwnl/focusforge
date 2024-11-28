@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { Session, useSessionStore } from "../states/session"
 import { LucideArrowLeft, LucideChartArea, LucideMenu, LucideMessageCircleX, LucideMinus, LucideMoon, LucidePlus, LucideSettings2, LucideSun, LucideTrash2 } from "lucide-react"
-import { AI, ChromeTabs, Pomodoro, Todos } from "../components"
+import { Chat, ChromeTabs, Pomodoro, Todos } from "../components"
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownSection, DropdownTrigger, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Switch, Tab, Tabs, useDisclosure } from "@nextui-org/react"
 import { useTheme } from "next-themes"
 import { useConfigureStore } from "../states/configure"
@@ -121,9 +121,9 @@ const tabs = [
     content: <ChromeTabs />
   },
   {
-    id: "ai",
-    label: "AI",
-    content: <AI />
+    id: "chat",
+    label: "Chat",
+    content: <Chat />
   }
 ]
 const SessionTabs = () => {

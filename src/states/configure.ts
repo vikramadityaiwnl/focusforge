@@ -20,7 +20,7 @@ export const useConfigureStore = create<ConfigureStore>((set) => {
     showPomodoroClock: true,
     focusTimeInMinutes: 25,
     breakTimeInMinutes: 5,
-    aiWebsiteBlockerEnabled: false,
+    aiWebsiteBlockerEnabled: true,
   };
 
   return {
