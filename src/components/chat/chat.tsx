@@ -91,7 +91,7 @@ export const Chat = () => {
         />
       </div>
 
-      <p className="text-xs text-neutral-500 text-center">AI responses may be limited in accuracy and context awareness. Use with discretion.</p>
+      <p className="text-xs shrink-0 text-neutral-500 text-center">AI responses may be limited in accuracy and context awareness. Use with discretion.</p>
     </div>
   )
 }

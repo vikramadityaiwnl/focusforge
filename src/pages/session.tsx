@@ -7,6 +7,8 @@ import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownSection, Dropdown
 import { useTheme } from "next-themes"
 import { useConfigureStore } from "../states/configure"
 import { useConversationStore } from "../states/conversation"
+import toast from "react-hot-toast"
+import { shouldBlockWebsite } from "../states/models"
 
 export const SessionPage = () => {
   const location = useLocation()
@@ -20,9 +22,73 @@ export const SessionPage = () => {
   const configDialog = useDisclosure()
   const deleteChatDialog = useDisclosure()
 
-  const { sessions, setCurrentSession } = useSessionStore()
+  const { sessions, setCurrentSession, currentSession } = useSessionStore()
   const { showPomodoroClock } = useConfigureStore()
   const { setSessionId } = useConversationStore()
+
+  useEffect(() => {
+    const handleWebsiteBlocker = async () => {
+      try {
+        const { aiWebsiteBlockerEnabled } = useConfigureStore.getState();
+        if (!aiWebsiteBlockerEnabled || !currentSession?.name) {
+          return;
+        }
+
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        const tab = tabs.find(tab => 
+          tab.url && 
+          tab.title && 
+          tab.status === "complete" && 
+          !tab.url.startsWith("chrome://") &&
+          tab.url !== "chrome://newtab/" &&
+          tab.url !== "about:blank"
+        );
+
+        if (!tab?.id || !tab.url || !tab.title) {
+          return;
+        }
+
+        const [{ result: tabContent }] = await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          func: () => document.body.innerText,
+        });
+
+        if (!tabContent) {
+          toast.error("Could not check content from tab.");
+          return;
+        }
+
+        const shouldBlock = await shouldBlockWebsite(
+          tab.url,
+          tab.title,
+          tabContent,
+          currentSession.name
+        );
+
+        if (shouldBlock) {
+          const confirmed = window.confirm("This website may distract you from your focus session. Do you want to close it?");
+          if (confirmed) {
+            await chrome.tabs.remove(tab.id);
+          }
+        }
+      } catch (error) {
+        console.error('Website blocker error:', error);
+        toast.error("Error checking website content");
+      }
+    };
+
+    const setup = async () => {
+      chrome.tabs.onUpdated.addListener(handleWebsiteBlocker);
+      chrome.tabs.onActivated.addListener(handleWebsiteBlocker);
+    };
+
+    setup();
+
+    return () => {
+      chrome.tabs.onUpdated.removeListener(handleWebsiteBlocker);
+      chrome.tabs.onActivated.removeListener(handleWebsiteBlocker);
+    };
+  }, [currentSession]);
 
   useEffect(() => {
     const currentSession = sessions.find((s) => s.id === sessionId)

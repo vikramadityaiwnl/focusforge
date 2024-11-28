@@ -96,8 +96,9 @@ const CreateSessionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
           (onClose) => (
             <>
               <ModalHeader>Create Session</ModalHeader>
-              <ModalBody>
-                <Input ref={inputRef} label="Session Name" isClearable autoFocus onKeyDown={(e) => e.key === "Enter" && handleCreateSession()} />
+              <ModalBody className="flex flex-col gap-3">
+                <Input ref={inputRef} fullWidth label="Session Name" isClearable autoFocus onKeyDown={(e) => e.key === "Enter" && handleCreateSession()} />
+                <p className="text-xs text-neutral-500">Tip: Choose a descriptive session name to provide better context for the <b>AI</b> assistant</p>
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
