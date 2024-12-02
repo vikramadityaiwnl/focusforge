@@ -4,7 +4,17 @@ import { LucideClipboard, LucideTrash2 } from "lucide-react"
 import { Button } from "@nextui-org/react"
 import toast from "react-hot-toast";
 
-const isBlobUrl = (str: string) => str.startsWith('blob:');
+// Add these utility functions at the top
+const convertBlobToBase64 = (blob: Blob): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+};
+
+const isBase64Image = (str: string) => str.startsWith('data:image/');
 
 export const Clipboard = () => {
   const { clipboard, addToClipboard, removeFromClipboard } = useSessionStore()
@@ -13,38 +23,30 @@ export const Clipboard = () => {
 
   const handleCopyToClipboard = async (item: string) => {
     try {
-      if (isBlobUrl(item)) {
-        // For images, try multiple approaches
-        try {
-          const response = await fetch(item);
-          const blob = await response.blob();
-          
-          // Try to copy image to clipboard
-          if (navigator.clipboard.write) {
-            await navigator.clipboard.write([
-              new ClipboardItem({
-                [blob.type]: blob
-              })
-            ]);
-            toast.success('Image copied to clipboard!');
-          } else {
-            // Fallback: open image in new tab
-            window.open(item, '_blank');
-            toast.success('Image opened in new tab (copying not supported in this browser)');
-          }
-        } catch (error) {
-          // If clipboard copy fails, open in new tab
+      if (isBase64Image(item)) {
+        // For Base64 images
+        const response = await fetch(item);
+        const blob = await response.blob();
+        
+        if (navigator.clipboard.write) {
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              [blob.type]: blob
+            })
+          ]);
+          toast.success('Image copied to clipboard!');
+        } else {
+          // Fallback: open image in new tab
           window.open(item, '_blank');
-          toast.success('Image opened in new tab');
+          toast.success('Image opened in new tab (copying not supported in this browser)');
         }
       } else {
-        // For text, use writeText
+        // For text
         await navigator.clipboard.writeText(item);
         toast.success('Text copied to clipboard!');
       }
     } catch (error) {
       toast.error('Failed to handle clipboard operation');
-      console.error('Clipboard error:', error);
     }
   };
 
@@ -62,8 +64,8 @@ export const Clipboard = () => {
             hasImage = true
             const blob = item.getAsFile()
             if (blob) {
-              const url = URL.createObjectURL(blob)
-              addToClipboard(url)
+              const base64 = await convertBlobToBase64(blob);
+              addToClipboard(base64);
             }
           }
         }
@@ -75,7 +77,7 @@ export const Clipboard = () => {
       }
     }
 
-    const handleDrop = (event: DragEvent) => {
+    const handleDrop = async (event: DragEvent) => {
       event.preventDefault()
       const text = event.dataTransfer?.getData('text')
       const files = event.dataTransfer?.files
@@ -86,8 +88,8 @@ export const Clipboard = () => {
         for (const file of files) {
           if (file.type.startsWith('image/')) {
             hasImage = true
-            const url = URL.createObjectURL(file)
-            addToClipboard(url)
+            const base64 = await convertBlobToBase64(file);
+            addToClipboard(base64);
           }
         }
       }
@@ -136,7 +138,7 @@ export const Clipboard = () => {
                     className="flex-grow cursor-pointer" 
                     onClick={() => handleCopyToClipboard(String(item))}
                   >
-                    {typeof item === 'string' && !isBlobUrl(item) ? (
+                    {typeof item === 'string' && !isBase64Image(item) ? (
                       <p className="break-all">{item}</p>
                     ) : (
                       <img src={String(item)} alt="Clipboard item" className="max-w-full h-auto" />

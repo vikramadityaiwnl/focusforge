@@ -23,18 +23,18 @@ export const SessionPage = () => {
   const deleteChatDialog = useDisclosure()
 
   const { sessions, setCurrentSession, currentSession } = useSessionStore()
-  const { showPomodoroClock } = useConfigureStore()
+  const { showPomodoroClock, strictAIWebsiteBlockerEnabled } = useConfigureStore()
   const { setSessionId } = useConversationStore()
 
   useEffect(() => {
     const handleWebsiteBlocker = async () => {
       try {
-        const { aiWebsiteBlockerEnabled } = useConfigureStore.getState();
-        if (!aiWebsiteBlockerEnabled || !currentSession?.name) {
+        if (!currentSession?.name) {
           return;
         }
 
         const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+
         const tab = tabs.find(tab => 
           tab.url && 
           tab.title && 
@@ -48,14 +48,18 @@ export const SessionPage = () => {
           return;
         }
 
-        const [{ result: tabContent }] = await chrome.scripting.executeScript({
-          target: { tabId: tab.id },
-          func: () => document.body.innerText,
-        });
+        let tabContent = '';
+        if (strictAIWebsiteBlockerEnabled) {
+          const [{ result }] = await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: () => document.body.innerText,
+          });
+          tabContent = result || "";
 
-        if (!tabContent) {
-          toast.error("Could not check content from tab.");
-          return;
+          if (!tabContent) {
+            toast.error("Could not check content from tab.");
+            return;
+          }
         }
 
         const shouldBlock = await shouldBlockWebsite(
@@ -72,7 +76,6 @@ export const SessionPage = () => {
           }
         }
       } catch (error) {
-        console.error('Website blocker error:', error);
         toast.error("Error checking website content");
       }
     };
@@ -88,7 +91,7 @@ export const SessionPage = () => {
       chrome.tabs.onUpdated.removeListener(handleWebsiteBlocker);
       chrome.tabs.onActivated.removeListener(handleWebsiteBlocker);
     };
-  }, [currentSession]);
+  }, [currentSession, strictAIWebsiteBlockerEnabled]);
 
   useEffect(() => {
     const currentSession = sessions.find((s) => s.id === sessionId)
@@ -332,8 +335,8 @@ const ConfigurationDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                 </div>
 
                 <div className="flex flex-row justify-between gap-4">
-                  <span>AI Website Blocker</span>
-                  <Switch size="sm" isSelected={configuration.aiWebsiteBlockerEnabled} onValueChange={(isSelected) => configuration.setAiWebsiteBlockerEnabled(isSelected)} />
+                  <span>Strict AI Website Blocker</span>
+                  <Switch size="sm" isSelected={configuration.strictAIWebsiteBlockerEnabled} onValueChange={(isSelected) => configuration.setStrictAIWebsiteBlockerEnabled(isSelected)} />
                 </div>
 
                 <Switch
