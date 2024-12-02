@@ -110,7 +110,7 @@ export const Todos = () => {
               [...currentSession.todos].reverse().map((todo) => (
                 <div key={todo.id} className="flex flex-row justify-between items-center gap-1 shrink-0">
                   <Checkbox key={todo.id} isSelected={todo.completed} onValueChange={(isSelected) => handleUpdateTodo(todo.id, todo, isSelected)}>
-                    <p className={`${todo.completed ? 'line-through text-neutral-500' : ''}`}>{todo.name}</p>
+                    <p className={`text-sm ${todo.completed ? 'line-through text-neutral-500' : ''}`}>{todo.name}</p>
                   </Checkbox>
                   <Button isIconOnly size="sm" onPress={() => removeTodo(todo.id)}>
                     <LucideDelete size={18} />
