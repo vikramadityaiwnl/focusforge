@@ -346,7 +346,7 @@ const ConfigurationDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                 </div>
 
                 <div className="flex flex-row justify-between gap-4">
-                  <span>Website Blocker</span>
+                  <span>AI Website Blocker</span>
                   <Switch size="sm" isSelected={configuration.blockWebsites} onValueChange={(isSelected) => configuration.setBlockWebsites(isSelected)} />
                 </div>
 
@@ -462,7 +462,7 @@ const GuideDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
               <ModalHeader></ModalHeader>
               <ModalBody>
                 <Markdown 
-                  className="markdown-container text-medium"
+                  className="markdown-container text-sm"
                   components={{
                     h1: ({node, ...props}) => <h1 {...props} className="text-lg font-bold mb-2 text-default-900 dark:text-white" />,
                     h2: ({node, ...props}) => <h2 {...props} className="text-md font-bold mb-2 text-default-900 dark:text-white" />,
@@ -498,7 +498,8 @@ FocusForge helps you stay focused and productive by providing essential tools an
 ## 🕒 Pomodoro Timer
 - Focus and break sessions to maintain productivity
 - Customizable focus (5-120 min) and break (5-30 min) durations
-- Visual progress tracking with audio notification
+- Visual progress tracking
+- Audio Notify (thanks to pixabay!!)
 
 ## ✅ To-do List
 - Create and manage tasks
@@ -514,7 +515,7 @@ FocusForge helps you stay focused and productive by providing essential tools an
 
 ## 💬 AI Chat Assistant
 - Context-aware AI chat support
-- Access to-do information using <kbd>/todo</kbd> command
+- Access to-do information using /todo command
 - Real-time streaming responses
 - Task management assistance
 

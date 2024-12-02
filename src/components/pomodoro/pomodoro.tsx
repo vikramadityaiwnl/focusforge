@@ -12,11 +12,13 @@ export const Pomodoro = () => {
   const [seconds, setSeconds] = useState(focusTimeInMinutes * 60)
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout>()
   const [progressLabel, setProgressLabel] = useState("00:00:00")
-  const audio = new Audio("/sounds/finish.mp3")
+  const finishAudio = new Audio("/sounds/finished.mp3")
+  const startAudio = new Audio("/sounds/start.mp3")
 
   const [pomodoroState, setPomodoroState] = useState({ isInitialLoad: true, isOnFocus: true, isOnBreak: false, canPause: false, isPaused: false })
 
   useEffect(() => {
+    setCurrentState(PomodoroStateEnum.FOCUS)
     setSeconds(focusTimeInMinutes * 60)
     setPomodoroState({ isInitialLoad: true, isOnFocus: true, isOnBreak: false, canPause: false, isPaused: false })
     clearInterval(intervalId)
@@ -29,14 +31,17 @@ export const Pomodoro = () => {
       clearInterval(intervalId)
       setIntervalId(undefined)
       setPomodoroState({ isInitialLoad: true, isOnFocus: true, isOnBreak: false, canPause: false, isPaused: false })
-      audio.play()
+      finishAudio.play()
     }
 
     setProgressLabel(`${Math.floor(seconds / 3600).toString().padStart(2, "0")}:${Math.floor((seconds % 3600) / 60).toString().padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`)
   }, [seconds])
 
   const handleFocusStart = () => {
+    setCurrentState(PomodoroStateEnum.FOCUS)
     setSeconds(focusTimeInMinutes * 60)
+    toast.success("Focus time! 🚀 Let's get some work done! 💪")
+    startAudio.play()
     setPomodoroState({ isInitialLoad: false, isOnFocus: true, canPause: true, isOnBreak: false, isPaused: false })
 
     if (!intervalId) {
@@ -49,10 +54,11 @@ export const Pomodoro = () => {
   }
 
   const handleBreakStart = () => {
-    toast.success("Break time! 🎉 Take a breather and touch some grass 🌿")
-    setSeconds(breakTimeInMinutes * 60)
-    setPomodoroState({ isInitialLoad: false, isOnFocus: false, canPause: true, isOnBreak: true, isPaused: false })
     setCurrentState(PomodoroStateEnum.BREAK)
+    setSeconds(breakTimeInMinutes * 60)
+    toast.success("Break time! 🎉 Take a breather and touch some grass 🌿")
+    startAudio.play()
+    setPomodoroState({ isInitialLoad: false, isOnFocus: false, canPause: true, isOnBreak: true, isPaused: false })
 
     if (!intervalId) {
       const id = setInterval(() => {
@@ -80,10 +86,10 @@ export const Pomodoro = () => {
 
   const handleReset = () => {
     setCurrentState(PomodoroStateEnum.FOCUS)
+    setSeconds(focusTimeInMinutes * 60)
     clearInterval(intervalId)
     setIntervalId(undefined)
     setPomodoroState({ isInitialLoad: true, isOnFocus: true, isOnBreak: false, canPause: false, isPaused: false })
-    setSeconds(focusTimeInMinutes * 60)
   }
 
   return (
