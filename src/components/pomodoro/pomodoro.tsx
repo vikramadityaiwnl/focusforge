@@ -3,6 +3,7 @@ import { PomodoroStateEnum, usePomodoroStore } from "../../states/pomodoro"
 import { useEffect, useState } from "react"
 import { LucideAlarmCheck, LucideAlarmClockMinus, LucideCirclePause, LucideCirclePlay, LucideTimerReset } from "lucide-react"
 import { useConfigureStore } from "../../states/configure"
+import toast from "react-hot-toast"
 
 export const Pomodoro = () => {
   const { currentState, setCurrentState } = usePomodoroStore()
@@ -48,6 +49,7 @@ export const Pomodoro = () => {
   }
 
   const handleBreakStart = () => {
+    toast.success("Break time! 🎉 Take a breather and touch some grass 🌿")
     setSeconds(breakTimeInMinutes * 60)
     setPomodoroState({ isInitialLoad: false, isOnFocus: false, canPause: true, isOnBreak: true, isPaused: false })
     setCurrentState(PomodoroStateEnum.BREAK)

@@ -10,6 +10,9 @@ type ConfigureStore = {
   breakTimeInMinutes: number,
   setBreakTimeInMinutes: (minutes: number) => void,
 
+  blockWebsites: boolean,
+  setBlockWebsites: (block: boolean) => void,
+
   strictAIWebsiteBlockerEnabled: boolean,
   setStrictAIWebsiteBlockerEnabled: (enabled: boolean) => void,
 
@@ -32,6 +35,7 @@ export const useConfigureStore = create<ConfigureStore>((set) => {
     showPomodoroClock: true,
     focusTimeInMinutes: 25,
     breakTimeInMinutes: 5,
+    blockWebsites: false,
     strictAIWebsiteBlockerEnabled: true,
     showTodo: true,
     showTabs: true,
@@ -57,6 +61,12 @@ export const useConfigureStore = create<ConfigureStore>((set) => {
       const newState = { ...state, breakTimeInMinutes: minutes };
       localStorage.setItem('configuration', JSON.stringify(newState));
       return newState;
+    }),
+
+    setBlockWebsites: (block) => set((state) => {
+      const newState = { ...state, blockWebsites: block };
+      localStorage.setItem('configuration', JSON.stringify(newState));
+      return newState
     }),
 
     setStrictAIWebsiteBlockerEnabled: (enabled) => set((state) => {

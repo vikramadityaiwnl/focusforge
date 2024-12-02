@@ -161,7 +161,18 @@ const SummaryModal = ({ isOpen, onClose, onRetry, title, content, isRetrying }: 
                 {title}
               </ModalHeader>
               <ModalBody>
-                <Markdown className="text-sm">
+                <Markdown 
+                  className="markdown-container text-sm"
+                  components={{
+                    h1: ({node, ...props}) => <h1 {...props} className="text-lg font-bold mb-2 text-default-900 dark:text-white" />,
+                    h2: ({node, ...props}) => <h2 {...props} className="text-md font-bold mb-2 text-default-900 dark:text-white" />,
+                    h3: ({node, ...props}) => <h3 {...props} className="text-base font-bold mb-2 text-default-900 dark:text-white" />,
+                    p: ({node, ...props}) => <p {...props} className="mb-2 text-default-900 dark:text-white" />,
+                    ul: ({node, ...props}) => <ul {...props} className="list-disc ml-4 mb-2 text-default-900 dark:text-white" />,
+                    ol: ({node, ...props}) => <ol {...props} className="list-decimal ml-4 mb-2 text-default-900 dark:text-white" />,
+                    strong: ({node, ...props}) => <strong {...props} className="font-bold text-default-900 dark:text-white" />
+                  }}
+                >
                   {content}
                 </Markdown>
               </ModalBody>

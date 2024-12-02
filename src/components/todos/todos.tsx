@@ -22,6 +22,8 @@ export const Todos = () => {
   if (currentSession === null) return
 
   const handleAddTodo = () => {
+    if (isLoading) return
+
     if (todoText.trim() === "") return
 
     const todo: Todo = {
@@ -61,7 +63,6 @@ export const Todos = () => {
     } catch (error) {
       toast.error("Failed to generate insights. Please try again.")
       setTodoInsights("")
-      console.log(error)
     } finally {
       setIsLoading(false)
       setIsRetrying(false)
@@ -73,7 +74,7 @@ export const Todos = () => {
       <div className="flex gap-2 justify-center items-center shrink-0">
         <Input placeholder="Enter your to-do" value={todoText} onValueChange={(e) => setTodoText(e)} onKeyDown={(e) => e.key === "Enter" && handleAddTodo()} />
         <Tooltip content="Add To-do" delay={1000}>
-          <Button isIconOnly size="sm" onPress={handleAddTodo}>
+          <Button isIconOnly size="sm" onPress={handleAddTodo} disabled={isLoading}>
             <LucidePlus size={18} />
           </Button>
         </Tooltip>
@@ -108,7 +109,9 @@ export const Todos = () => {
             {
               [...currentSession.todos].reverse().map((todo) => (
                 <div key={todo.id} className="flex flex-row justify-between items-center gap-1 shrink-0">
-                  <Checkbox key={todo.id} lineThrough isSelected={todo.completed} onValueChange={(isSelected) => handleUpdateTodo(todo.id, todo, isSelected)}>{todo.name}</Checkbox>
+                  <Checkbox key={todo.id} isSelected={todo.completed} onValueChange={(isSelected) => handleUpdateTodo(todo.id, todo, isSelected)}>
+                    <p className={`${todo.completed ? 'line-through text-neutral-500' : ''}`}>{todo.name}</p>
+                  </Checkbox>
                   <Button isIconOnly size="sm" onPress={() => removeTodo(todo.id)}>
                     <LucideDelete size={18} />
                   </Button>
@@ -150,7 +153,18 @@ const InsightsModal = ({ isOpen, onClose, onRetry, content, isRetrying }: Insigh
               To-do Insights
             </ModalHeader>
             <ModalBody>
-              <Markdown className="text-sm">
+              <Markdown 
+                className="markdown-container text-sm"
+                components={{
+                  h1: ({node, ...props}) => <h1 {...props} className="text-lg font-bold mb-2 text-default-900 dark:text-white" />,
+                  h2: ({node, ...props}) => <h2 {...props} className="text-md font-bold mb-2 text-default-900 dark:text-white" />,
+                  h3: ({node, ...props}) => <h3 {...props} className="text-base font-bold mb-2 text-default-900 dark:text-white" />,
+                  p: ({node, ...props}) => <p {...props} className="mb-2 text-default-900 dark:text-white" />,
+                  ul: ({node, ...props}) => <ul {...props} className="list-disc ml-4 mb-2 text-default-900 dark:text-white" />,
+                  ol: ({node, ...props}) => <ol {...props} className="list-decimal ml-4 mb-2 text-default-900 dark:text-white" />,
+                  strong: ({node, ...props}) => <strong {...props} className="font-bold text-default-900 dark:text-white" />
+                }}
+              >
                 {content}
               </Markdown>
             </ModalBody>

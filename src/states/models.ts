@@ -81,7 +81,6 @@ export const initializeAIModels = async () => {
     store.setMagicModel(magicModel)
   } catch (error) {
     toast.error("Something went wrong")
-    console.log(error)
   }
 }
 

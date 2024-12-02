@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { Session, useSessionStore } from "../states/session"
-import { LucideArrowLeft, LucideChartArea, LucideMenu, LucideMessageCircleX, LucideMinus, LucideMoon, LucidePlus, LucideSettings2, LucideSun, LucideTrash2 } from "lucide-react"
+import { LucideArrowLeft, LucideBadgeInfo, LucideMenu, LucideMessageCircleX, LucideMinus, LucideMoon, LucidePlus, LucideSettings2, LucideSun, LucideTrash2 } from "lucide-react"
 import { Chat, ChromeTabs, Clipboard, Pomodoro, Todos } from "../components"
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownSection, DropdownTrigger, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Switch, Tab, Tabs, useDisclosure } from "@nextui-org/react"
 import { useTheme } from "next-themes"
@@ -9,6 +9,7 @@ import { useConfigureStore } from "../states/configure"
 import { useConversationStore } from "../states/conversation"
 import toast from "react-hot-toast"
 import { shouldBlockWebsite } from "../states/models"
+import Markdown from "react-markdown"
 
 export const SessionPage = () => {
   const location = useLocation()
@@ -21,9 +22,10 @@ export const SessionPage = () => {
   const deleteDialog = useDisclosure()
   const configDialog = useDisclosure()
   const deleteChatDialog = useDisclosure()
+  const guideDialog = useDisclosure()
 
   const { sessions, setCurrentSession, currentSession } = useSessionStore()
-  const { showPomodoroClock, strictAIWebsiteBlockerEnabled } = useConfigureStore()
+  const { showPomodoroClock, blockWebsites, strictAIWebsiteBlockerEnabled } = useConfigureStore()
   const { setSessionId } = useConversationStore()
 
   useEffect(() => {
@@ -85,13 +87,19 @@ export const SessionPage = () => {
       chrome.tabs.onActivated.addListener(handleWebsiteBlocker);
     };
 
+    if (!blockWebsites) {
+      chrome.tabs.onUpdated.removeListener(handleWebsiteBlocker);
+      chrome.tabs.onActivated.removeListener(handleWebsiteBlocker);
+      return
+    }
+
     setup();
 
     return () => {
       chrome.tabs.onUpdated.removeListener(handleWebsiteBlocker);
       chrome.tabs.onActivated.removeListener(handleWebsiteBlocker);
     };
-  }, [currentSession, strictAIWebsiteBlockerEnabled]);
+  }, [currentSession, blockWebsites, strictAIWebsiteBlockerEnabled]);
 
   useEffect(() => {
     const currentSession = sessions.find((s) => s.id === sessionId)
@@ -113,7 +121,7 @@ export const SessionPage = () => {
             <span className="truncate">{session.name}</span>
           </Button>
 
-          <Menu openDeleteDialog={deleteDialog.onOpen} openConfigurationDialog={configDialog.onOpen} openDeleteChatDialog={deleteChatDialog.onOpen} />
+          <Menu openDeleteDialog={deleteDialog.onOpen} openConfigurationDialog={configDialog.onOpen} openDeleteChatDialog={deleteChatDialog.onOpen} openGuideDialog={guideDialog.onOpen} />
         </div>
 
         {showPomodoroClock && <Pomodoro />}
@@ -123,6 +131,7 @@ export const SessionPage = () => {
         <DeleteSessionDialog isOpen={deleteDialog.isOpen} onClose={deleteDialog.onClose} />
         <DeleteChatDialog isOpen={deleteChatDialog.isOpen} onClose={deleteChatDialog.onClose} />
         <ConfigurationDialog isOpen={configDialog.isOpen} onClose={configDialog.onClose} />
+        <GuideDialog isOpen={guideDialog.isOpen} onClose={guideDialog.onClose} />
       </div>
     )
   }
@@ -131,9 +140,10 @@ export const SessionPage = () => {
 interface MenuProps {
   openDeleteDialog: () => void
   openConfigurationDialog: () => void
-  openDeleteChatDialog: () => void
+  openDeleteChatDialog: () => void,
+  openGuideDialog: () => void
 }
-const Menu = ({ openDeleteDialog, openConfigurationDialog, openDeleteChatDialog }: MenuProps) => {
+const Menu = ({ openDeleteDialog, openConfigurationDialog, openDeleteChatDialog, openGuideDialog }: MenuProps) => {
   return (
     <Dropdown>
       <DropdownTrigger>
@@ -150,9 +160,10 @@ const Menu = ({ openDeleteDialog, openConfigurationDialog, openDeleteChatDialog 
             Configure
           </DropdownItem>
           <DropdownItem
-            key="analytics"
-            startContent={<LucideChartArea size={18} />}>
-            Analytics
+            onPress={openGuideDialog}
+            key="guide"
+            startContent={<LucideBadgeInfo size={18} />}>
+            Guide
           </DropdownItem>
         </DropdownSection>
         <DropdownSection title="Danger Zone">
@@ -229,13 +240,13 @@ const ConfigurationDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
   const configuration = useConfigureStore()
 
   return (
-    <Modal backdrop="blur" isOpen={isOpen} onClose={onClose} placement="center">
+    <Modal backdrop="blur" isOpen={isOpen} onClose={onClose} placement="center" scrollBehavior="inside">
       <ModalContent>
         {
           (onClose) => (
             <>
               <ModalHeader>Configure</ModalHeader>
-              <ModalBody className="flex flex-col gap-4">
+              <ModalBody className="flex flex-col gap-4 text-medium">
                 <div className="flex flex-row justify-between gap-4">
                   <span>Show Pomodoro Clock</span>
                   <Switch size="sm" isSelected={configuration.showPomodoroClock} onValueChange={(isSelected) => configuration.setShowPomodoroClock(isSelected)} />
@@ -335,9 +346,18 @@ const ConfigurationDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                 </div>
 
                 <div className="flex flex-row justify-between gap-4">
-                  <span>Strict AI Website Blocker</span>
-                  <Switch size="sm" isSelected={configuration.strictAIWebsiteBlockerEnabled} onValueChange={(isSelected) => configuration.setStrictAIWebsiteBlockerEnabled(isSelected)} />
+                  <span>Website Blocker</span>
+                  <Switch size="sm" isSelected={configuration.blockWebsites} onValueChange={(isSelected) => configuration.setBlockWebsites(isSelected)} />
                 </div>
+
+                {
+                  configuration.blockWebsites && (
+                    <div className="flex flex-row justify-between gap-4">
+                      <span>Strict AI Website Blocker</span>
+                      <Switch size="sm" isSelected={configuration.strictAIWebsiteBlockerEnabled} onValueChange={(isSelected) => configuration.setStrictAIWebsiteBlockerEnabled(isSelected)} />
+                    </div>
+                  )
+                }
 
                 <Switch
                   defaultSelected
@@ -354,7 +374,7 @@ const ConfigurationDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                   } />
               </ModalBody>
               <ModalFooter>
-                <Button color="default" variant="light" onPress={onClose}>
+                <Button color="default" size="sm" variant="light" onPress={onClose}>
                   Close
                 </Button>
               </ModalFooter>
@@ -377,14 +397,14 @@ const DeleteSessionDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
           (onClose) => (
             <>
               <ModalHeader>Delete Session</ModalHeader>
-              <ModalBody>
+              <ModalBody className="text-medium">
                 Are you sure you want to delete this session? This action cannot be undone.
               </ModalBody>
               <ModalFooter>
-                <Button color="default" variant="light" onPress={onClose}>
+                <Button color="default" size="sm" variant="light" onPress={onClose}>
                   Cancel
                 </Button>
-                <Button color="danger" onPress={() => {
+                <Button color="danger" size="sm" onPress={() => {
                   removeSession(currentSession?.id || "")
                   onClose()
                   navigation("/")
@@ -410,14 +430,14 @@ const DeleteChatDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: () =>
           (onClose) => (
             <>
               <ModalHeader>Delete Chat</ModalHeader>
-              <ModalBody>
+              <ModalBody className="text-medium">
                 Are you sure you want to delete chat from this session? This action cannot be undone.
               </ModalBody>
               <ModalFooter>
-                <Button color="default" variant="light" onPress={onClose}>
+                <Button color="default" size="sm" variant="light" onPress={onClose}>
                   Cancel
                 </Button>
-                <Button color="danger" onPress={() => {
+                <Button color="danger" size="sm" onPress={() => {
                   clearMessages()
                   onClose()
                 }}>
@@ -431,3 +451,82 @@ const DeleteChatDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: () =>
     </Modal>
   )
 }
+
+const GuideDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+  return (
+    <Modal backdrop="blur" isOpen={isOpen} onClose={onClose} placement="center" scrollBehavior="inside">
+      <ModalContent>
+        {
+          (onClose) => (
+            <>
+              <ModalHeader></ModalHeader>
+              <ModalBody>
+                <Markdown 
+                  className="markdown-container text-medium"
+                  components={{
+                    h1: ({node, ...props}) => <h1 {...props} className="text-lg font-bold mb-2 text-default-900 dark:text-white" />,
+                    h2: ({node, ...props}) => <h2 {...props} className="text-md font-bold mb-2 text-default-900 dark:text-white" />,
+                    h3: ({node, ...props}) => <h3 {...props} className="text-base font-bold mb-2 text-default-900 dark:text-white" />,
+                    p: ({node, ...props}) => <p {...props} className="mb-2 text-default-900 dark:text-white" />,
+                    ul: ({node, ...props}) => <ul {...props} className="list-disc ml-4 mb-2 text-default-900 dark:text-white" />,
+                    ol: ({node, ...props}) => <ol {...props} className="list-decimal ml-4 mb-2 text-default-900 dark:text-white" />,
+                    li: ({node, ...props}) => <li {...props} className="mb-2 text-default-900 dark:text-white" />,
+                    strong: ({node, ...props}) => <strong {...props} className="font-bold text-default-900 dark:text-white" />
+                  }}
+                >
+                  {guide}
+                </Markdown>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="primary" size="sm" fullWidth onPress={onClose}>
+                  Got it!
+                </Button>
+              </ModalFooter>
+            </>
+          )
+        }
+      </ModalContent>
+    </Modal>
+  )
+}
+const guide = 
+`
+# FocusForge Guide 🎯
+
+FocusForge helps you stay focused and productive by providing essential tools and AI assistance.
+
+## 🕒 Pomodoro Timer
+- Focus and break sessions to maintain productivity
+- Customizable focus (5-120 min) and break (5-30 min) durations
+- Visual progress tracking with audio notification
+
+## ✅ To-do List
+- Create and manage tasks
+- AI-powered task suggestions using Magic button
+- Track completion status
+- Mark tasks as done/undone
+
+## 💻 Tab Management
+- View all active browser tabs
+- AI-powered content summarization
+- Quick access to tab information
+- Close distracting tabs with AI assistance
+
+## 💬 AI Chat Assistant
+- Context-aware AI chat support
+- Access to-do information using <kbd>/todo</kbd> command
+- Real-time streaming responses
+- Task management assistance
+
+## 📋 Clipboard
+- Store text and images
+- Drag & drop support
+- Copy items back to clipboard
+- Persistent storage across sessions
+
+## ⚙️ Configuration
+- Dark/Light theme toggle
+- Show/Hide features as you desire
+- Customize Pomodoro durations
+- Enable/Disable strict AI website blocker
+`
