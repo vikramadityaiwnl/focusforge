@@ -1,7 +1,7 @@
 import { LucideDelete, LucideListTodo, LucidePlus, LucideWandSparkles } from "lucide-react"
 import { Todo, useSessionStore } from "../../states/session"
 import { Button, Checkbox, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Tooltip, useDisclosure } from "@nextui-org/react"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { v4 as uuid } from "uuid"
 import { useAIModelsStore } from "../../states/models"
 import Markdown from "react-markdown"
@@ -17,6 +17,7 @@ export const Todos = () => {
   const [isRetrying, setIsRetrying] = useState(false)
 
   const insightsModal = useDisclosure()
+  const contextModal = useDisclosure()
 
   if (currentSession === null) return
 
@@ -37,19 +38,19 @@ export const Todos = () => {
     updateTodo(id, { ...todo, completed: isSelected })
   }
 
-  const handleMagic = async (isRetrying: boolean) => {
+  const handleMagic = async (isRetrying?: boolean, context?: string) => {
     if (!magicModel) return
-    if (currentSession.todos.length === 0) return
-    
+
     if (todoInsights !== "" && !isRetrying) {
       insightsModal.onOpen()
       return
     }
 
     setIsLoading(true)
+    contextModal.onClose()
 
     try {
-      const response = await magicModel.prompt(JSON.stringify({ todos: currentSession.todos, isRetrying }))
+      const response = await magicModel.prompt(JSON.stringify({ todos: currentSession.todos, context, isRetrying }))
       const parsedResponse = JSON.parse(response)
       const insights = parsedResponse.insights
       const todos = parsedResponse.todos.reverse()
@@ -60,6 +61,7 @@ export const Todos = () => {
     } catch (error) {
       toast.error("Failed to generate insights. Please try again.")
       setTodoInsights("")
+      console.log(error)
     } finally {
       setIsLoading(false)
       setIsRetrying(false)
@@ -69,18 +71,25 @@ export const Todos = () => {
   return (
     <div className="flex flex-col gap-4 h-full">
       <div className="flex gap-2 justify-center items-center shrink-0">
-        <Input placeholder="todo" value={todoText} onValueChange={(e) => setTodoText(e)} onKeyDown={(e) => e.key === "Enter" && handleAddTodo()} />
-        <Tooltip content="Add Todo">
+        <Input placeholder="Enter your to-do" value={todoText} onValueChange={(e) => setTodoText(e)} onKeyDown={(e) => e.key === "Enter" && handleAddTodo()} />
+        <Tooltip content="Add To-do" delay={1000}>
           <Button isIconOnly size="sm" onPress={handleAddTodo}>
             <LucidePlus size={18} />
           </Button>
         </Tooltip>
-        <Tooltip content="Magic ✨">
+        <Tooltip content="Magic ✨" delay={1000}>
           {
             isLoading ? (
               <Button isIconOnly size="sm" isLoading spinner={<Spinner />} />
             ) : (
-              <Button isIconOnly size="sm" onPress={() => handleMagic(false)}>
+              <Button isIconOnly size="sm" onPress={() => {
+                if (currentSession.todos.length === 0) {
+                  contextModal.onOpen()
+                  return
+                }
+
+                handleMagic(false)
+              }}>
                 <LucideWandSparkles size={18} />
               </Button>
             )
@@ -91,7 +100,8 @@ export const Todos = () => {
         currentSession.todos.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-neutral-500">
             <LucideListTodo size={64} />
-            <p className="text-lg">No todos yet</p>
+            <p className="text-lg">No to-dos yet</p>
+            <p className="text-xs flex-shrink-0 text-neutral-500 text-center mt-4">Nothing on mind? Use magic tool to get AI generated to-do's.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-4 overflow-y-auto flex-grow">
@@ -113,6 +123,8 @@ export const Todos = () => {
         setIsRetrying(true)
         handleMagic(true)
       }} content={todoInsights} isRetrying={isRetrying} />
+
+      <TodoContextModal isOpen={contextModal.isOpen} onClose={contextModal.onClose} handleMagic={handleMagic} />
     </div>
   )
 }
@@ -127,40 +139,78 @@ interface InsightsModalProps {
 const InsightsModal = ({ isOpen, onClose, onRetry, content, isRetrying }: InsightsModalProps) => {
   return (
     <Modal
-        isOpen={isOpen}
-        scrollBehavior="inside"
-        onClose={onClose}
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                Todo Insights
-              </ModalHeader>
-              <ModalBody>
-                <Markdown className="text-sm">
-                  {content}
-                </Markdown>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="default" fullWidth onPress={onClose} size="sm">
-                  Close
-                </Button>
-                {
-                  isRetrying ? (
-                    <Button isLoading spinner={<Spinner />} fullWidth size="sm">
-                      Retrying
-                    </Button>
-                  ) : (
-                    <Button color="primary" startContent={<LucideWandSparkles size={18} />} size="sm" fullWidth onPress={onRetry}>
-                      Retry
-                    </Button>
-                  )
-                }
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+      isOpen={isOpen}
+      scrollBehavior="inside"
+      onClose={onClose}
+    >
+      <ModalContent>
+        {(onClose) => (
+          <>
+            <ModalHeader className="flex flex-col gap-1">
+              To-do Insights
+            </ModalHeader>
+            <ModalBody>
+              <Markdown className="text-sm">
+                {content}
+              </Markdown>
+            </ModalBody>
+            <ModalFooter>
+              <Button color="default" fullWidth onPress={onClose} size="sm">
+                Close
+              </Button>
+              {
+                isRetrying ? (
+                  <Button isLoading spinner={<Spinner />} fullWidth size="sm">
+                    Retrying
+                  </Button>
+                ) : (
+                  <Button color="primary" startContent={<LucideWandSparkles size={18} />} size="sm" fullWidth onPress={onRetry}>
+                    Retry
+                  </Button>
+                )
+              }
+            </ModalFooter>
+          </>
+        )}
+      </ModalContent>
+    </Modal>
+  )
+}
+
+interface TodoContextModalProps {
+  isOpen: boolean,
+  onClose: () => void,
+  handleMagic: (isRetrying?: boolean, context?: string) => void
+}
+const TodoContextModal = ({ isOpen, onClose, handleMagic }: TodoContextModalProps) => {
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      scrollBehavior="inside"
+      onClose={onClose}
+    >
+      <ModalContent>
+        {(onClose) => (
+          <>
+            <ModalHeader className="flex flex-col gap-1">
+              Generate AI To-do's
+            </ModalHeader>
+            <ModalBody className="flex flex-col gap-3">
+              <Input ref={inputRef} fullWidth label="Context" isClearable autoFocus onKeyDown={(e) => e.key === "Enter" && inputRef.current && handleMagic(false, inputRef.current.value)} />
+            </ModalBody>
+            <ModalFooter>
+              <Button color="default" fullWidth onPress={onClose} size="sm">
+                Close
+              </Button>
+              <Button color="primary" startContent={<LucideWandSparkles size={18} />} size="sm" fullWidth onPress={() => inputRef.current && handleMagic(false, inputRef.current.value)}>
+                Generate
+              </Button>
+            </ModalFooter>
+          </>
+        )}
+      </ModalContent>
+    </Modal>
   )
 }

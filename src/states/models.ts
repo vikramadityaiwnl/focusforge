@@ -46,26 +46,27 @@ export const initializeAIModels = async () => {
     if (chatCapabilities.available === "no" || summarizingCapabilities.available === "no" || magicCapabilities.available === "no") return
   
     const chatSystemPrompt = "You are an AI assistant integrated into FocusForge, a productivity tool designed to help users manage and optimize their working sessions. Your role is to provide insightful, concise, and actionable advice to help users stay focused, manage their time effectively, and achieve their goals. You should be supportive, encouraging, and resourceful, offering tips on task management, time blocking, and maintaining a healthy work-life balance. Always strive to enhance the user's productivity and well-being."
-    const magicSystemPrompt = `You are a productivity AI assistant. For any todo list, provide a JSON object in this exact format:
+    const magicSystemPrompt = `You are a productivity AI assistant specialized in task management and workflow optimization. Your response must be a valid JSON string.
+
+      For any todo list, respond with a JSON object in this format:
       {
-      "insights": "Breif insights about the todos (include key dependencies, time estimates, core patterns, etc.)",
-      "todos": [
-        {
-        "id": number,
-        "name": string,
-        "completed": boolean
-        }
-      ]
+        "insights": "Brief insights about the todos",
+        "todos": [
+          {
+            "id": "string",
+            "name": "string",
+            "completed": false
+          }
+        ]
       }
 
       Rules:
-      - Return only the JSON object, nothing else
-      - Insights should be in proper markdown format
-      - Make sure insights are for all uncompleted todos, also tell them how to complete them
-      - Dont include retry attempts in insights
-      - If needed, add new todos that help create a clear roadmap or break down complex tasks
-      - New todos should logically connect to existing ones and maintain task dependencies
-      - Order todos by priority (lowest first since the list will be reversed in frontend display)
+      - Return *ONLY* the valid JSON object, no backticks, no markdown formatting
+      - Insights should be a plain text string that can include \\n for newlines
+      - If todos array is empty, suggest 3-5 starter todos
+      - Make sure insights covers all uncompleted todos
+      - Add new todos to break down complex tasks if needed
+      - Order todos by priority (lowest first)
     `
 
     const [chatModel, summarizeModel, magicModel] = await Promise.all([
@@ -80,6 +81,7 @@ export const initializeAIModels = async () => {
     store.setMagicModel(magicModel)
   } catch (error) {
     toast.error("Something went wrong")
+    console.log(error)
   }
 }
 
