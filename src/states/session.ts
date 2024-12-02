@@ -8,6 +8,7 @@ export interface Session {
   totalTasks: number,
   todos: Todo[],
   conversation: Conversation[],
+  clipboard: any[], // Add clipboard to Session interface
 }
 
 export interface Todo {
@@ -20,6 +21,9 @@ type SessionStore = {
   sessions: Session[],
   currentSession: Session | null,
   todoInsights: string,
+  clipboard: any[],
+  addToClipboard: (clipboard: any) => void,
+  removeFromClipboard: (index: number) => void,
   setTodos: (todos: Todo[]) => void,
   addSession: (session: Session) => void,
   removeSession: (id: string) => void,
@@ -46,6 +50,7 @@ const saveSession = (sessions: Session[]) => {
 export const useSessionStore = create<SessionStore>((set) => ({
   sessions: getSessions(),
   currentSession: null,
+  clipboard: [], // Will be populated when setting current session
 
   setTodos: (todos: Todo[]) => set((state) => {
     if (!state.currentSession) return {};
@@ -77,7 +82,10 @@ export const useSessionStore = create<SessionStore>((set) => ({
     return { sessions: newList };
   }),
 
-  setCurrentSession: (session: Session) => set({ currentSession: session }),
+  setCurrentSession: (session: Session) => set({ 
+    currentSession: session,
+    clipboard: session.clipboard || [] 
+  }),
 
   addTodo: (todo: Todo) => set((state) => {
     if (!state.currentSession) return {};
@@ -120,6 +128,42 @@ export const useSessionStore = create<SessionStore>((set) => ({
     );
     saveSession(newSessions);
     return { sessions: newSessions, currentSession: newSession };
+  }),
+
+  addToClipboard: (newItem: any) => set((state) => {
+    if (!state.currentSession) return { clipboard: [] };
+    const newClipboard = [...state.clipboard, newItem];
+    const newSession = { 
+      ...state.currentSession, 
+      clipboard: newClipboard 
+    } as Session;
+    const newSessions = state.sessions.map((session) => 
+      session.id === state.currentSession?.id ? newSession : session
+    );
+    saveSession(newSessions);
+    return { 
+      clipboard: newClipboard,
+      sessions: newSessions,
+      currentSession: newSession
+    };
+  }),
+
+  removeFromClipboard: (index: number) => set((state) => {
+    if (!state.currentSession) return { clipboard: [] };
+    const newClipboard = state.clipboard.filter((_, i) => i !== index);
+    const newSession = { 
+      ...state.currentSession, 
+      clipboard: newClipboard 
+    } as Session;
+    const newSessions = state.sessions.map((session) => 
+      session.id === state.currentSession?.id ? newSession : session
+    );
+    saveSession(newSessions);
+    return { 
+      clipboard: newClipboard,
+      sessions: newSessions,
+      currentSession: newSession
+    };
   }),
 
   todoInsights: "",

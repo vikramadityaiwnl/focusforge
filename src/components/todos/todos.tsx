@@ -91,7 +91,7 @@ export const Todos = () => {
         currentSession.todos.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-neutral-500">
             <LucideListTodo size={64} />
-            <p className="text-lg font-semibold">No todos yet</p>
+            <p className="text-lg">No todos yet</p>
           </div>
         ) : (
           <div className="flex flex-col gap-4 overflow-y-auto flex-grow">

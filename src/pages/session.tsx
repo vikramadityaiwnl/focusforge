@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { Session, useSessionStore } from "../states/session"
 import { LucideArrowLeft, LucideChartArea, LucideMenu, LucideMessageCircleX, LucideMinus, LucideMoon, LucidePlus, LucideSettings2, LucideSun, LucideTrash2 } from "lucide-react"
-import { Chat, ChromeTabs, Pomodoro, Todos } from "../components"
+import { Chat, ChromeTabs, Clipboard, Pomodoro, Todos } from "../components"
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownSection, DropdownTrigger, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Switch, Tab, Tabs, useDisclosure } from "@nextui-org/react"
 import { useTheme } from "next-themes"
 import { useConfigureStore } from "../states/configure"
@@ -177,8 +177,8 @@ const Menu = ({ openDeleteDialog, openConfigurationDialog, openDeleteChatDialog 
 
 const tabs = [
   {
-    id: "todos",
-    label: "Todos",
+    id: "todo",
+    label: "To-do",
     content: <Todos />
   },
   {
@@ -190,19 +190,32 @@ const tabs = [
     id: "chat",
     label: "Chat",
     content: <Chat />
+  },
+  {
+    id: "clipboard",
+    label: "Clipboard",
+    content: <Clipboard />
   }
 ]
 const SessionTabs = () => {
+  const { showTodo, showTabs, showChat, showClipboard } = useConfigureStore()
+
+  const visibleTabs = tabs.filter(item => {
+    if (item.id === "todo" && !showTodo) return false
+    if (item.id === "tabs" && !showTabs) return false
+    if (item.id === "chat" && !showChat) return false
+    if (item.id === "clipboard" && !showClipboard) return false
+    return true
+  })
+
   return (
     <div className="flex w-full h-full flex-col p-4 overflow-hidden mb-2">
-      <Tabs aria-label="session tabs" items={tabs} fullWidth size="md" className="flex-shrink-0">
-        {
-          (item) => (
-            <Tab key={item.id} title={item.label} className="h-full flex-grow-0">
-              {item.content}
-            </Tab>
-          )
-        }
+      <Tabs aria-label="session tabs" items={visibleTabs} fullWidth size="md" className="flex-shrink-0">
+        {(item) => (
+          <Tab key={item.id} title={item.label} className="h-full flex-grow-0">
+            {item.content}
+          </Tab>
+        )}
       </Tabs>
     </div>
   )
@@ -210,7 +223,7 @@ const SessionTabs = () => {
 
 const ConfigurationDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   const { theme, setTheme } = useTheme()
-  const { showPomodoroClock, focusTimeInMinutes, setFocusTimeInMinutes, breakTimeInMinutes, setBreakTimeInMinutes, setShowPomodoroClock, aiWebsiteBlockerEnabled, setAiWebsiteBlockerEnabled } = useConfigureStore()
+  const configuration = useConfigureStore()
 
   return (
     <Modal backdrop="blur" isOpen={isOpen} onClose={onClose} placement="center">
@@ -222,18 +235,18 @@ const ConfigurationDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
               <ModalBody className="flex flex-col gap-4">
                 <div className="flex flex-row justify-between gap-4">
                   <span>Show Pomodoro Clock</span>
-                  <Switch size="sm" isSelected={showPomodoroClock} onValueChange={(isSelected) => setShowPomodoroClock(isSelected)} />
+                  <Switch size="sm" isSelected={configuration.showPomodoroClock} onValueChange={(isSelected) => configuration.setShowPomodoroClock(isSelected)} />
                 </div>
 
                 {
-                  showPomodoroClock && (
+                  configuration.showPomodoroClock && (
                     <div className="flex flex-row justify-between gap-4 mt-4">
                       <Input 
                       type="number" 
                       label="Focus Time (minutes)"
                       size="sm"
                       labelPlacement="outside"
-                      value={focusTimeInMinutes.toString()} 
+                      value={configuration.focusTimeInMinutes.toString()} 
                       disabled
                       classNames={{
                         input: "text-center"
@@ -243,8 +256,8 @@ const ConfigurationDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                         isIconOnly 
                         variant="light" 
                         color="default" 
-                        onPress={() => setFocusTimeInMinutes(Math.max(5, focusTimeInMinutes - 5))}
-                        isDisabled={focusTimeInMinutes <= 5}
+                        onPress={() => configuration.setFocusTimeInMinutes(Math.max(5, configuration.focusTimeInMinutes - 5))}
+                        isDisabled={configuration.focusTimeInMinutes <= 5}
                         >
                         <LucideMinus size={18} />
                         </Button>
@@ -254,8 +267,8 @@ const ConfigurationDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                         isIconOnly 
                         variant="light" 
                         color="default" 
-                        onPress={() => setFocusTimeInMinutes(Math.min(120, focusTimeInMinutes + 5))}
-                        isDisabled={focusTimeInMinutes >= 120}
+                        onPress={() => configuration.setFocusTimeInMinutes(Math.min(120, configuration.focusTimeInMinutes + 5))}
+                        isDisabled={configuration.focusTimeInMinutes >= 120}
                         >
                         <LucidePlus size={18} />
                         </Button>
@@ -266,7 +279,7 @@ const ConfigurationDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                       label="Break Time (minutes)"
                       labelPlacement="outside"
                       size="sm"
-                      value={breakTimeInMinutes.toString()} 
+                      value={configuration.breakTimeInMinutes.toString()} 
                       disabled
                       classNames={{
                         input: "text-center"
@@ -276,8 +289,8 @@ const ConfigurationDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                         isIconOnly 
                         variant="light" 
                         color="default"
-                        onPress={() => setBreakTimeInMinutes(Math.max(5, breakTimeInMinutes - 5))}
-                        isDisabled={breakTimeInMinutes <= 5}
+                        onPress={() => configuration.setBreakTimeInMinutes(Math.max(5, configuration.breakTimeInMinutes - 5))}
+                        isDisabled={configuration.breakTimeInMinutes <= 5}
                         >
                         <LucideMinus size={18} />
                         </Button>
@@ -287,8 +300,8 @@ const ConfigurationDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                         isIconOnly 
                         variant="light" 
                         color="default"
-                        onPress={() => setBreakTimeInMinutes(Math.min(30, breakTimeInMinutes + 5))}
-                        isDisabled={breakTimeInMinutes >= 30}
+                        onPress={() => configuration.setBreakTimeInMinutes(Math.min(30, configuration.breakTimeInMinutes + 5))}
+                        isDisabled={configuration.breakTimeInMinutes >= 30}
                         >
                         <LucidePlus size={18} />
                         </Button>
@@ -299,8 +312,28 @@ const ConfigurationDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                 }
 
                 <div className="flex flex-row justify-between gap-4">
+                  <span>To-do</span>
+                  <Switch size="sm" isSelected={configuration.showTodo} onValueChange={(isSelected) => configuration.setShowTodo(isSelected)} />
+                </div>
+
+                <div className="flex flex-row justify-between gap-4">
+                  <span>Tabs</span>
+                  <Switch size="sm" isSelected={configuration.showTabs} onValueChange={(isSelected) => configuration.setShowTabs(isSelected)} />
+                </div>
+
+                <div className="flex flex-row justify-between gap-4">
+                  <span>Chat</span>
+                  <Switch size="sm" isSelected={configuration.showChat} onValueChange={(isSelected) => configuration.setShowChat(isSelected)} />
+                </div>
+
+                <div className="flex flex-row justify-between gap-4">
+                  <span>Clipboard</span>
+                  <Switch size="sm" isSelected={configuration.showClipboard} onValueChange={(isSelected) => configuration.setShowClipboard(isSelected)} />
+                </div>
+
+                <div className="flex flex-row justify-between gap-4">
                   <span>AI Website Blocker</span>
-                  <Switch size="sm" isSelected={aiWebsiteBlockerEnabled} onValueChange={(isSelected) => setAiWebsiteBlockerEnabled(isSelected)} />
+                  <Switch size="sm" isSelected={configuration.aiWebsiteBlockerEnabled} onValueChange={(isSelected) => configuration.setAiWebsiteBlockerEnabled(isSelected)} />
                 </div>
 
                 <Switch

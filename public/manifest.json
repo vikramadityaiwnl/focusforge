@@ -6,7 +6,7 @@
   "background": {
     "service_worker": "background.js"
   },
-  "permissions": ["sidePanel", "aiLanguageModelOriginTrial", "storage", "tabs", "scripting"],
+  "permissions": ["sidePanel", "aiLanguageModelOriginTrial", "storage", "tabs", "scripting", "activeTab"],
   "host_permissions": [
     "http://*/*",
     "https://*/*"

@@ -62,7 +62,7 @@ export const initializeAIModels = async () => {
       - Return only the JSON object, nothing else
       - Insights should be in proper markdown format
       - Order todos by priority (highest first)
-      - Focus on essential steps
+      - Add steps to complete todos if possible
       - Make sure insights are for all todos, not just the one todo or completed ones
       - Dont include retry attempts in insights
     `
@@ -78,7 +78,7 @@ export const initializeAIModels = async () => {
     store.setSummarizeModel(summarizeModel)
     store.setMagicModel(magicModel)
   } catch (error) {
-    toast.error(String(error))
+    toast.error("Something went wrong")
   }
 }
 
@@ -90,8 +90,8 @@ export const reInitializeSummaryModel = async () => {
     summarizeModel.destroy()
     const newSummarizeModel = await self.ai.summarizer.create()
     useAIModelsStore.getState().setSummarizeModel(newSummarizeModel)
-  } catch (error) {
-    toast.error(String(error))
+  } catch (error) { 
+    toast.error("Something went wrong")
   }
 }
 
@@ -109,9 +109,9 @@ export const shouldBlockWebsite = async (url: string, title: string, content: st
     const response = await blockerModel.prompt(JSON.stringify({ url, title, content, sessionName }))
     const result = JSON.parse(response)
     return result.block
-  } catch (error) {
-    toast.error(String(error))
-    return false
+  } catch (error) { 
+    toast.error("Something went wrong")
+    return false 
   } finally {
     blockerModel.destroy()
   }

@@ -14,13 +14,13 @@ function App() {
   return (
     <>
       <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/:sessionId" element={<SessionPage />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/:sessionId" element={<SessionPage />} />
       </Routes>
 
-      <Toaster 
-        position='top-right' 
-        containerClassName='mt-14 text-sm' 
+      <Toaster
+        position='top-right'
+        containerClassName='mt-14 text-sm'
         toastOptions={{
           style: {
             background: theme === "dark" ? '#333' : '#fff',

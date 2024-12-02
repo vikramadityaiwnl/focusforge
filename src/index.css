@@ -6,10 +6,12 @@
 
 :root[class="light"] {
   --border-color: rgba(0, 0, 0, 0.12);
+  --hover-border-color: rgba(0, 0, 0, 0.3);
 }
 
 :root[class="dark"] {
   --border-color: rgba(255, 255, 255, 0.12);
+  --hover-border-color: rgba(255, 255, 255, 0.3);
 }
 
 * {
@@ -28,4 +30,11 @@
 
 .good-border-bottom {
   border-bottom: 1px solid var(--border-color);
+}
+
+.clipboard-item {
+  border-color: var(--border-color);
+}
+.clipboard-item:hover {
+  border-color: var(--hover-border-color);
 }

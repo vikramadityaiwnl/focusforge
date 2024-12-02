@@ -84,6 +84,7 @@ const CreateSessionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
       totalTasks: 0,
       todos: [],
       conversation: [],
+      clipboard: []
     }),
 
     onClose()

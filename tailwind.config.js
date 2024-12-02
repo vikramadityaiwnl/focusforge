@@ -8,7 +8,12 @@ export default {
     "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        "border-color": "var(--border-color)",
+        "hover-border-color": "var(--hover-border-color)",
+      }
+    },
   },
   darkMode: "class",
   plugins: [
