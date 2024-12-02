@@ -62,8 +62,7 @@ export const initializeAIModels = async () => {
       - Return only the JSON object, nothing else
       - Insights should be in proper markdown format
       - Order todos by priority (highest first)
-      - Add steps to complete todos if possible
-      - Make sure insights are for all todos, not just the one todo or completed ones
+      - Make sure insights are for all uncompleted todos, also tell them how to complete them
       - Dont include retry attempts in insights
     `
 

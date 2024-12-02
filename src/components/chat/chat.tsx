@@ -44,9 +44,17 @@ export const Chat = () => {
       addUserMessage(inputText)
       addBotMessage("Thinking...", true)
 
-      const response = await chatModel.prompt(finalPrompt)
+      const stream: any = chatModel.promptStreaming(finalPrompt)
+      let fullResponse = ""
+      
+      for await (const chunk of stream) {
+        const newText = chunk.replace(fullResponse, "")
+        fullResponse += newText
+        removeThinkingMessage()
+        addBotMessage(fullResponse, true)
+      }
       removeThinkingMessage()
-      addBotMessage(response)
+      addBotMessage(fullResponse)
       
       setInputText("")
     } catch (error) {
