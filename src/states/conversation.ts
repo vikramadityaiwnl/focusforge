@@ -11,6 +11,8 @@ export interface Conversation {
 type ConversationStore = {
   sessionId: string,
   conversation: Conversation[],
+  activeTabContent: string,
+  setActiveTabContent: (content: string) => void,
   setSessionConversation: () => void,
   setSessionId: (sessionId: string) => void,
   addUserMessage: (text: string, attachments?: any) => void,
@@ -36,8 +38,11 @@ const saveConversation = (sessionId: string, conversation: Conversation[]) => {
 export const useConversationStore = create<ConversationStore>((set) => ({
   sessionId: "",
   conversation: [],
+  activeTabContent: "",
 
   setSessionId: (sessionId: string) => set({ sessionId }),
+
+  setActiveTabContent: (content: string) => set({ activeTabContent: content }),
 
   setSessionConversation: () => set((state) => {
     const sessions = getSessions();

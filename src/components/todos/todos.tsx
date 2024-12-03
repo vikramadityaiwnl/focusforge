@@ -3,7 +3,7 @@ import { Todo, useSessionStore } from "../../states/session"
 import { Button, Checkbox, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Tooltip, useDisclosure } from "@nextui-org/react"
 import { useRef, useState } from "react"
 import { v4 as uuid } from "uuid"
-import { useAIModelsStore } from "../../states/models"
+import { reInitializeMagicModel, useAIModelsStore } from "../../states/models"
 import Markdown from "react-markdown"
 import { Spinner } from "../spinner/spinner"
 import toast from "react-hot-toast"
@@ -66,6 +66,7 @@ export const Todos = () => {
     } finally {
       setIsLoading(false)
       setIsRetrying(false)
+      reInitializeMagicModel()
     }
   }
 

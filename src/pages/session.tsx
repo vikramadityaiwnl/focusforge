@@ -8,7 +8,7 @@ import { useTheme } from "next-themes"
 import { useConfigureStore } from "../states/configure"
 import { useConversationStore } from "../states/conversation"
 import toast from "react-hot-toast"
-import { shouldBlockWebsite } from "../states/models"
+import { reInitializeChatModel, shouldBlockWebsite } from "../states/models"
 import Markdown from "react-markdown"
 
 export const SessionPage = () => {
@@ -440,6 +440,7 @@ const DeleteChatDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: () =>
                 <Button color="danger" size="sm" onPress={() => {
                   clearMessages()
                   onClose()
+                  reInitializeChatModel()
                 }}>
                   Delete
                 </Button>
@@ -516,6 +517,7 @@ FocusForge helps you stay focused and productive by providing essential tools an
 ## 💬 AI Chat Assistant
 - Context-aware AI chat support
 - Access to-do information using /todo command
+- Ask questions related to active tab using /tab command
 - Real-time streaming responses
 - Task management assistance
 

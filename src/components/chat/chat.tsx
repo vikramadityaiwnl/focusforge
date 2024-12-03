@@ -9,7 +9,7 @@ import { useSessionStore } from "../../states/session"
 import { Spinner } from "../spinner/spinner"
 
 export const Chat = () => {
-  const { conversation, setSessionConversation, addUserMessage, addBotMessage, removeThinkingMessage } = useConversationStore()
+  const { conversation, setSessionConversation, addUserMessage, addBotMessage, removeThinkingMessage, activeTabContent, setActiveTabContent } = useConversationStore()
   const { chatModel } = useAIModelsStore()
   const { currentSession } = useSessionStore()
 
@@ -19,6 +19,14 @@ export const Chat = () => {
 
   useEffect(() => {
     if (currentSession) setSessionConversation()
+
+    chrome.tabs.onUpdated.addListener(handleActiveTabContent)
+    chrome.tabs.onActivated.addListener(handleActiveTabContent)
+
+    return () => {
+      chrome.tabs.onUpdated.removeListener(handleActiveTabContent)
+      chrome.tabs.onActivated.removeListener(handleActiveTabContent)
+    }
   }, [])
 
   useEffect(() => {
@@ -26,6 +34,38 @@ export const Chat = () => {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
     }
   }, [conversation])
+
+  const handleActiveTabContent = async () => {
+    if (activeTabContent !== "") return
+
+    const tabs = await chrome.tabs.query({ active: true })
+    const activeTab = tabs[0]
+    if (!activeTab) return
+    if (activeTab.status !== "complete") return
+    if (activeTab.id === undefined) {
+      toast.error("Tab ID not found.")
+      return
+    }
+
+    const result = await chrome.scripting.executeScript({
+      target: { tabId: activeTab.id },
+      func: () => {
+        return {
+          title: document.title,
+          body: document.body.innerText.slice(0, 5000) // Limit to 5000 characters due to limitations
+        }
+      }
+    })
+
+    const tabcontent = result[0].result
+    if (!tabcontent) {
+      toast.error("Could not extract content from tab.")
+      return
+    }
+
+    setActiveTabContent(JSON.stringify(tabcontent))
+    return JSON.stringify(tabcontent)
+  }
 
   const handleConversation = async () => {
     if (isLoading) return
@@ -44,10 +84,16 @@ export const Chat = () => {
 
       setIsLoading(true)
 
-      let finalPrompt = `nUser Message: ${inputText}\n\nSession Name: ${currentSession?.name}`;
+      let finalPrompt = `User Message: ${inputText}\n\nSession Name: ${currentSession?.name}`
 
       if (inputText.includes("/todo") && currentSession?.todos) {
-        finalPrompt = `Todos: ${JSON.stringify(currentSession.todos)}\n\nUser Message: ${finalPrompt}\n\nSession Name: ${currentSession?.name}`;
+        finalPrompt = `Todos: ${JSON.stringify(currentSession.todos)}\n\nUser Message: ${finalPrompt}\n\nSession Name: ${currentSession?.name}`
+      }
+      if (inputText.includes("/tab")) {
+        addBotMessage("Reading tab content...", true)
+        const tabContent = await handleActiveTabContent()
+        removeThinkingMessage()
+        finalPrompt = `Tab Content: ${tabContent}\n\nUser Message: ${finalPrompt}\n\nSession Name: ${currentSession?.name}`
       }
 
       addUserMessage(inputText)
@@ -83,12 +129,12 @@ export const Chat = () => {
             <Markdown 
               className={`markdown-container message-bubble prose ${message.type === "user" ? "bg-primary text-white" : "bg-default-100 text-default-900"} p-2 rounded text-sm`}
               components={{
-                h1: ({node, ...props}) => <h1 {...props} className="text-lg font-bold mb-2 text-default-900 dark:text-white" />,
-                h2: ({node, ...props}) => <h2 {...props} className="text-md font-bold mb-2 text-default-900 dark:text-white" />,
-                h3: ({node, ...props}) => <h3 {...props} className="text-base font-bold mb-2 text-default-900 dark:text-white" />,
-                p: ({node, ...props}) => <p {...props} className={`mb-2 ${message.type === "user" ? "bg-primary text-white" : "text-default-900 dark:text-white"}`} />,
-                ul: ({node, ...props}) => <ul {...props} className="list-disc ml-4 mb-2 text-default-900 dark:text-white" />,
-                ol: ({node, ...props}) => <ol {...props} className="list-decimal ml-4 mb-2 text-default-900 dark:text-white" />,
+                h1: ({node, ...props}) => <h1 {...props} className="text-lg font-bold text-default-900 dark:text-white" />,
+                h2: ({node, ...props}) => <h2 {...props} className="text-md font-bold text-default-900 dark:text-white" />,
+                h3: ({node, ...props}) => <h3 {...props} className="text-base font-bold text-default-900 dark:text-white" />,
+                p: ({node, ...props}) => <p {...props} className={`${message.type === "user" ? "bg-primary text-white" : "text-default-900 dark:text-white"}`} />,
+                ul: ({node, ...props}) => <ul {...props} className="list-disc ml-4 text-default-900 dark:text-white" />,
+                ol: ({node, ...props}) => <ol {...props} className="list-decimal ml-4 text-default-900 dark:text-white" />,
                 strong: ({node, ...props}) => <strong {...props} className="font-bold text-default-900 dark:text-white" />
               }}
             >
