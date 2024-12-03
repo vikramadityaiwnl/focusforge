@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { Session, useSessionStore } from "../states/session"
-import { LucideArrowLeft, LucideBadgeInfo, LucideMenu, LucideMessageCircleX, LucideMinus, LucideMoon, LucidePlus, LucideSettings2, LucideSun, LucideTrash2 } from "lucide-react"
+import { LucideArrowLeft, LucideBadgeInfo, LucideGithub, LucideMenu, LucideMessageCircleX, LucideMinus, LucideMoon, LucidePlus, LucideSettings2, LucideSun, LucideTrash2 } from "lucide-react"
 import { Chat, ChromeTabs, Clipboard, Pomodoro, Todos } from "../components"
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownSection, DropdownTrigger, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Switch, Tab, Tabs, useDisclosure } from "@nextui-org/react"
 import { useTheme } from "next-themes"
@@ -164,6 +164,12 @@ const Menu = ({ openDeleteDialog, openConfigurationDialog, openDeleteChatDialog,
             key="guide"
             startContent={<LucideBadgeInfo size={18} />}>
             Guide
+          </DropdownItem>
+          <DropdownItem
+            onPress={() => window.open("https://github.com/vikramadityaiwnl/focusforge")}
+            key="github"
+            startContent={<LucideGithub size={18} />}>
+            Github
           </DropdownItem>
         </DropdownSection>
         <DropdownSection title="Danger Zone">
@@ -494,42 +500,36 @@ const guide =
 `
 # FocusForge Guide 🎯
 
-FocusForge helps you stay focused and productive by providing essential tools and AI assistance.
+FocusForge is your ultimate productivity companion, offering a suite of tools and AI assistance to help you stay focused and efficient.
 
 ## 🕒 Pomodoro Timer
-- Focus and break sessions to maintain productivity
-- Customizable focus (5-120 min) and break (5-30 min) durations
-- Visual progress tracking
-- Audio Notify (thanks to pixabay!!)
+- Manage your time with customizable focus (5-120 min) and break (5-30 min) sessions.
+- Track your progress visually and stay on top of your tasks.
+- Receive audio notifications to keep you on schedule.
 
 ## ✅ To-do List
-- Create and manage tasks
-- AI-powered task suggestions using Magic button
-- Track completion status
-- Mark tasks as done/undone
+- Create, manage, and track your tasks effortlessly.
+- Get AI-powered task suggestions with the Magic button.
+- Monitor completion status and mark tasks as done or undone.
 
 ## 💻 Tab Management
-- View all active browser tabs
-- AI-powered content summarization
-- Quick access to tab information
-- Close distracting tabs with AI assistance
+- View and manage all active browser tabs.
+- Summarize tab content with AI-powered summarization.
+- Quickly access tab information and close distracting tabs with AI assistance.
 
 ## 💬 AI Chat Assistant
-- Context-aware AI chat support
-- Access to-do information using /todo command
-- Ask questions related to active tab using /tab command
-- Real-time streaming responses
-- Task management assistance
+- Engage in context-aware AI chat support.
+- Use the /todo command to access to-do information.
+- Ask questions related to the active tab using the /tab command.
+- Receive real-time streaming responses and task management assistance.
 
 ## 📋 Clipboard
-- Store text and images
-- Drag & drop support
-- Copy items back to clipboard
-- Persistent storage across sessions
+- Store and manage text and images with drag & drop support.
+- Copy items back to the clipboard and enjoy persistent storage across sessions.
 
 ## ⚙️ Configuration
-- Dark/Light theme toggle
-- Show/Hide features as you desire
-- Customize Pomodoro durations
-- Enable/Disable strict AI website blocker
+- Toggle between dark and light themes.
+- Show or hide features as needed.
+- Customize Pomodoro durations.
+- Enable or disable the strict AI website blocker for enhanced focus.
 `

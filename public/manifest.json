@@ -1,8 +1,8 @@
 {
   "name": "focusforge",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "manifest_version": 3,
-  "description": "A tool to forge strong focus and productivity habits.",
+  "description": "Forge Your Focus, Fuel Your Productivity.",
   "background": {
     "service_worker": "background.js"
   },
@@ -21,6 +21,6 @@
       "48": "images/icon48.png",
       "128": "images/icon128.png"
     },
-    "default_title": "Open focusforge"
+    "default_title": "focusforge"
   }
 }
