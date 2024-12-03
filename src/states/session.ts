@@ -8,7 +8,7 @@ export interface Session {
   totalTasks: number,
   todos: Todo[],
   conversation: Conversation[],
-  clipboard: any[], // Add clipboard to Session interface
+  clipboard: any[],
 }
 
 export interface Todo {
@@ -50,11 +50,15 @@ const saveSession = (sessions: Session[]) => {
 export const useSessionStore = create<SessionStore>((set) => ({
   sessions: getSessions(),
   currentSession: null,
-  clipboard: [], // Will be populated when setting current session
+  clipboard: [],
 
   setTodos: (todos: Todo[]) => set((state) => {
     if (!state.currentSession) return {};
-    const newSession = { ...state.currentSession, todos } as Session;
+    const newSession = { 
+      ...state.currentSession, 
+      todos,
+      totalTasks: todos.length 
+    } as Session;
     const newSessions = state.sessions.map((session) => 
       session.id === state.currentSession?.id ? newSession : session
     );
@@ -93,7 +97,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
     const newSession = { 
       ...state.currentSession, 
       todos: newList,
-      totalTasks: state.currentSession.totalTasks + 1 
+      totalTasks: newList.length 
     } as Session;
     const newSessions = state.sessions.map((session) => 
       session.id === state.currentSession?.id ? newSession : session
@@ -108,7 +112,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
     const newSession = { 
       ...state.currentSession, 
       todos: newList,
-      totalTasks: state.currentSession.totalTasks - 1 
+      totalTasks: newList.length 
     } as Session;
     const newSessions = state.sessions.map((session) => 
       session.id === state.currentSession?.id ? newSession : session
@@ -122,7 +126,11 @@ export const useSessionStore = create<SessionStore>((set) => ({
     const newList = state.currentSession.todos.map((todo) => 
       todo.id === id ? newTodo : todo
     );
-    const newSession = { ...state.currentSession, todos: newList } as Session;
+    const newSession = { 
+      ...state.currentSession, 
+      todos: newList,
+      totalTasks: newList.length 
+    } as Session;
     const newSessions = state.sessions.map((session) => 
       session.id === state.currentSession?.id ? newSession : session
     );

@@ -48,8 +48,8 @@ export const Todos = () => {
       return
     }
 
+    setTodoInsights("")
     setIsLoading(true)
-    contextModal.onClose()
 
     try {
       const response = await magicModel.prompt(JSON.stringify({ todos: currentSession.todos, context, isRetrying }))
@@ -66,6 +66,7 @@ export const Todos = () => {
     } finally {
       setIsLoading(false)
       setIsRetrying(false)
+      contextModal.onClose()
       reInitializeMagicModel()
     }
   }
@@ -102,7 +103,7 @@ export const Todos = () => {
         currentSession.todos.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-neutral-500">
             <LucideListTodo size={64} />
-            <p className="text-lg">No to-dos yet</p>
+            <p className="text-lg">No to-do's yet</p>
             <p className="text-xs flex-shrink-0 text-neutral-500 text-center mt-4">Nothing on mind? Use magic tool to get AI generated to-do's.</p>
           </div>
         ) : (
@@ -128,7 +129,7 @@ export const Todos = () => {
         handleMagic(true)
       }} content={todoInsights} isRetrying={isRetrying} />
 
-      <TodoContextModal isOpen={contextModal.isOpen} onClose={contextModal.onClose} handleMagic={handleMagic} />
+      <TodoContextModal isOpen={contextModal.isOpen} isGenerating={isLoading} onClose={contextModal.onClose} handleMagic={handleMagic} />
     </div>
   )
 }
@@ -194,10 +195,11 @@ const InsightsModal = ({ isOpen, onClose, onRetry, content, isRetrying }: Insigh
 
 interface TodoContextModalProps {
   isOpen: boolean,
+  isGenerating: boolean,
   onClose: () => void,
   handleMagic: (isRetrying?: boolean, context?: string) => void
 }
-const TodoContextModal = ({ isOpen, onClose, handleMagic }: TodoContextModalProps) => {
+const TodoContextModal = ({ isOpen, isGenerating, onClose, handleMagic }: TodoContextModalProps) => {
   const inputRef = useRef<HTMLInputElement>(null)
 
   return (
@@ -213,15 +215,23 @@ const TodoContextModal = ({ isOpen, onClose, handleMagic }: TodoContextModalProp
               Generate AI To-do's
             </ModalHeader>
             <ModalBody className="flex flex-col gap-3">
-              <Input ref={inputRef} fullWidth label="Context" isClearable autoFocus onKeyDown={(e) => e.key === "Enter" && inputRef.current && handleMagic(false, inputRef.current.value)} />
+              <Input ref={inputRef} fullWidth label="Context" isClearable disabled={isGenerating} autoFocus onKeyDown={(e) => e.key === "Enter" && (inputRef.current && inputRef.current.value.trim().length > 0) && handleMagic(false, inputRef.current.value)} />
             </ModalBody>
             <ModalFooter>
               <Button color="default" fullWidth onPress={onClose} size="sm">
                 Close
               </Button>
-              <Button color="primary" startContent={<LucideWandSparkles size={18} />} size="sm" fullWidth onPress={() => inputRef.current && handleMagic(false, inputRef.current.value)}>
-                Generate
-              </Button>
+              {
+                isGenerating ? (
+                  <Button isLoading spinner={<Spinner />} fullWidth size="sm">
+                    Generating
+                  </Button>
+                ) : (
+                  <Button color="primary" startContent={<LucideWandSparkles size={18} />} size="sm" fullWidth onPress={() => (inputRef.current && inputRef.current.value.trim().length > 0) && handleMagic(false, inputRef.current.value)}>
+                    Generate
+                  </Button>
+                )
+              }
             </ModalFooter>
           </>
         )}
