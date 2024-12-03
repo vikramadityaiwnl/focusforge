@@ -24,81 +24,103 @@ export const Clipboard = () => {
   const handleCopyToClipboard = async (item: string) => {
     try {
       if (isBase64Image(item)) {
-        // For Base64 images
+        // Request clipboard permission first
+        const permission = await navigator.permissions.query({ name: 'clipboard-write' as PermissionName });
+        if (permission.state === 'denied') {
+          throw new Error('Clipboard permission denied');
+        }
+
+        // Simpler blob creation from base64
         const response = await fetch(item);
         const blob = await response.blob();
         
-        if (navigator.clipboard.write) {
-          await navigator.clipboard.write([
-            new ClipboardItem({
-              [blob.type]: blob
-            })
-          ]);
+        // Ensure we're using a supported MIME type
+        const mimeType = blob.type === 'image/jpeg' ? 'image/png' : blob.type;
+        const convertedBlob = new Blob([await blob.arrayBuffer()], { type: mimeType });
+
+        if ('write' in navigator.clipboard) {
+          const clipboardItem = new ClipboardItem({
+            [mimeType]: convertedBlob
+          });
+          await navigator.clipboard.write([clipboardItem]);
           toast.success('Image copied to clipboard!');
         } else {
-          // Fallback: open image in new tab
           window.open(item, '_blank');
           toast.success('Image opened in new tab (copying not supported in this browser)');
         }
       } else {
-        // For text
         await navigator.clipboard.writeText(item);
         toast.success('Text copied to clipboard!');
       }
     } catch (error) {
-      toast.error('Failed to handle clipboard operation');
+      console.error('Clipboard error:', error);
+      toast.error(`Failed to copy to clipboard: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (isBase64Image(item)) {
+        window.open(item, '_blank');
+        toast.success('Image opened in new tab instead');
+      }
     }
   };
 
   useEffect(() => {
     const handlePaste = async (event: ClipboardEvent) => {
-      event.preventDefault()
-      const text = event.clipboardData?.getData('text')
-      const items = event.clipboardData?.items
+      event.preventDefault();
+      const text = event.clipboardData?.getData('text');
+      const items = event.clipboardData?.items;
 
-      let hasImage = false
+      let hasImage = false;
 
       if (items) {
         for (const item of items) {
           if (item.type.startsWith('image/')) {
-            hasImage = true
-            const blob = item.getAsFile()
+            hasImage = true;
+            const blob = item.getAsFile();
             if (blob) {
-              const base64 = await convertBlobToBase64(blob);
-              addToClipboard(base64);
+              try {
+                const base64 = await convertBlobToBase64(blob);
+                // Ensure we're storing the complete data URL with MIME type
+                addToClipboard(base64);
+              } catch (error) {
+                console.error('Error converting image:', error);
+                toast.error('Failed to process image');
+              }
             }
           }
         }
       }
 
-      // Only add text if no image was found
       if (text && !hasImage) {
-        addToClipboard(text)
+        addToClipboard(text);
       }
-    }
+    };
 
     const handleDrop = async (event: DragEvent) => {
-      event.preventDefault()
-      const text = event.dataTransfer?.getData('text')
-      const files = event.dataTransfer?.files
+      event.preventDefault();
+      const text = event.dataTransfer?.getData('text');
+      const files = event.dataTransfer?.files;
 
-      let hasImage = false
+      let hasImage = false;
 
       if (files) {
         for (const file of files) {
           if (file.type.startsWith('image/')) {
-            hasImage = true
-            const base64 = await convertBlobToBase64(file);
-            addToClipboard(base64);
+            hasImage = true;
+            try {
+              const base64 = await convertBlobToBase64(file);
+              // Ensure we're storing the complete data URL with MIME type
+              addToClipboard(base64);
+            } catch (error) {
+              console.error('Error converting image:', error);
+              toast.error('Failed to process image');
+            }
           }
         }
       }
 
-      // Only add text if no image was found
       if (text && !hasImage) {
-        addToClipboard(text)
+        addToClipboard(text);
       }
-    }
+    };
 
     const handleDragOver = (event: DragEvent) => {
       event.preventDefault()
